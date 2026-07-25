@@ -1,0 +1,3 @@
+backend/.env
+backend/app/core/__pycache__/
+backend/app/core/config.py
