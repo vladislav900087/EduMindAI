@@ -6,14 +6,13 @@ from backend.app.repositories.user_repository import UserRepository
 from backend.app.schemas.user import UserCreate, UserRead
 from backend.app.services.user_service import UserService
 
+from backend.app.api.dependencies import get_user_service
+
 router = APIRouter(prefix='/auth', tags=['Authentication'])
 
 
 @router.post('/register', response_model=UserRead, status_code=status.HTTP_201_CREATED)
-def register(user_data: UserCreate, db: Session = Depends(get_db)):
-    repository = UserRepository(db=db)
-    service = UserService(repository=repository)
-
+def register(user_data: UserCreate, service: UserService = Depends(get_user_service)):
     try:
         user = service.create_user(user_data)
     except ValueError as exc:
