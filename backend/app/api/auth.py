@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from backend.app.db.session import get_db
 from backend.app.repositories.user_repository import UserRepository
-from backend.app.schemas.user import UserCreate, UserRead
+from backend.app.schemas.user import UserCreate, UserRead, UserLogin
 from backend.app.services.user_service import UserService
 
 from backend.app.api.dependencies import get_user_service
@@ -19,3 +19,13 @@ def register(user_data: UserCreate, service: UserService = Depends(get_user_serv
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
     return user
+
+@router.post('/login', response_model=UserRead)
+def login(credentials: UserLogin, service: UserService = Depends(get_user_service)):
+    try:
+        return service.authenticate_user(credentials.email, credentials.password)
+
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(exc)) from exc
+
+
