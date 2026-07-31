@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from backend.app.db.session import get_db
 from backend.app.repositories.user_repository import UserRepository
-from backend.app.schemas.user import UserCreate, UserRead, UserLogin
+from backend.app.schemas.user import UserCreate, UserRead, UserLogin, Token
 from backend.app.services.user_service import UserService
 
 from backend.app.api.dependencies import get_user_service
@@ -20,10 +20,15 @@ def register(user_data: UserCreate, service: UserService = Depends(get_user_serv
 
     return user
 
-@router.post('/login', response_model=UserRead)
+@router.post('/login', response_model=Token)
 def login(credentials: UserLogin, service: UserService = Depends(get_user_service)):
     try:
-        return service.authenticate_user(credentials.email, credentials.password)
+        token = service.login(credentials.email, credentials.password)
+
+        return {
+            'access_token': token,
+            'token_type': 'bearer'
+        }
 
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(exc)) from exc

@@ -2,6 +2,7 @@ from backend.app.core.security import hash_password, verify_password
 from backend.app.models.user import User
 from backend.app.repositories.user_repository import UserRepository
 from backend.app.schemas.user import UserCreate
+from backend.app.core.jwt import create_access_token
 
 
 class UserService:
@@ -31,5 +32,10 @@ class UserService:
             raise ValueError('Invalid email or password.')
 
         return user
+
+    def login(self, email: str, password: str) -> str:
+        user = self.authenticate_user(email, password)
+
+        return create_access_token(str(user.id))
 
 
