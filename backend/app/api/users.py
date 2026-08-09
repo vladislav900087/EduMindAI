@@ -16,9 +16,4 @@ def read_current_user(current_user: User = Depends(get_current_user)):
     return current_user
 
 
-@router.get('/admin-test')
-def admin_test(current_user: User = Depends(require_roles(UserRole.ADMIN))):
-    return {
-        'message': 'You have administrator access.',
-        'user_id': current_user.id
-    }
+
