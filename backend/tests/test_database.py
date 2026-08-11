@@ -1,5 +1,5 @@
-from sqlalchemy import create_engine, text
-from backend.app.core.config import settings
+from sqlalchemy import text
+
 
 def test_database_connection(db_session):
     result = db_session.execute(text('SELECT 1'))
