@@ -8,6 +8,7 @@ from backend.app.core.config import settings
 from backend.app.db.database import Base
 from backend.app.models.user import User
 from backend.app.models.course import Course
+from backend.app.models.lesson import Lesson
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
