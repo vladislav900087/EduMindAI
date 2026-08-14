@@ -1,10 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from backend.app.api.authorization import require_roles
-from backend.app.api.dependencies import get_lesson_service
-from backend.app.models.user import User, UserRole
+from backend.app.api.dependencies import get_lesson_service, get_course_for_management
 from backend.app.schemas.lesson import LessonCreate, LessonRead
 from backend.app.services.lesson_service import LessonService
+
 
 
 router = APIRouter(prefix='/lessons', tags=['Lessons'])
@@ -12,7 +11,7 @@ router = APIRouter(prefix='/lessons', tags=['Lessons'])
 course_router = APIRouter(prefix='/courses', tags=['Lessons'])
 
 @course_router.post('/{course_id}/lessons', response_model=LessonRead, status_code=status.HTTP_201_CREATED)
-def create_lesson(course_id: int, lesson_data: LessonCreate, current_user: User = Depends(require_roles(UserRole.TEACHER, UserRole.ADMIN)), service: LessonService = Depends(get_lesson_service)):
+def create_lesson(course_id: int, lesson_data: LessonCreate, course = Depends(get_course_for_management), service: LessonService = Depends(get_lesson_service)):
     try:
         return service.create_lesson(course_id=course_id, lesson_data=lesson_data)
     except ValueError as exc:

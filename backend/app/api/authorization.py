@@ -13,4 +13,16 @@ def require_roles(*allowed_roles: UserRole) -> Callable:
 
     return role_checker
 
+def require_course_owner(course, user):
+    if user.role == UserRole.ADMIN:
+        return user
+
+    if user.role != UserRole.TEACHER:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Only teachers can manage course content')
+
+    if course.teacher_id != user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='You do not own this course')
+
+    return user
+
 
