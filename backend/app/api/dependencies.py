@@ -44,3 +44,23 @@ def get_course_for_management(course_id: int, current_user: User = Depends(get_c
 
     return course
 
+def get_lesson_for_management(lesson_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    lesson_repository = LessonRepository(db=db)
+    course_repository = CourseRepository(db=db)
+
+    lesson = lesson_repository.get_by_id(lesson_id)
+
+    if lesson is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Lesson not found')
+
+    course = course_repository.get_by_id(lesson.course_id)
+
+    if course is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Course not found')
+
+    require_course_owner(course, current_user)
+
+    return lesson
+
+
+

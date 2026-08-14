@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from backend.app.api.dependencies import get_lesson_service, get_course_for_management
+from backend.app.api.dependencies import get_lesson_service, get_course_for_management, get_lesson_for_management
 from backend.app.schemas.lesson import LessonCreate, LessonRead
 from backend.app.services.lesson_service import LessonService
+
+
 
 
 
@@ -33,7 +35,7 @@ def get_lesson(lesson_id: int, service: LessonService = Depends(get_lesson_servi
 
 
 @router.delete('/{lesson_id}', status_code=status.HTTP_204_NO_CONTENT)
-def delete_lesson(lesson_id: int, service: LessonService = Depends(get_lesson_service)):
+def delete_lesson(lesson_id: int, service: LessonService = Depends(get_lesson_service), lesson = Depends(get_lesson_for_management)):
     try:
         return service.delete_lesson(lesson_id=lesson_id)
     except ValueError as exc:
