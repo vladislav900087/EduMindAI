@@ -10,10 +10,15 @@ from backend.app.services.course_service import CourseService
 from backend.app.repositories.lesson_repository import LessonRepository
 from backend.app.services.lesson_service import LessonService
 
+from backend.app.repositories.course_enrollment_repository import CourseEnrollmentRepository
+from backend.app.services.course_enrollment_service import CourseEnrollmentService
+
 from backend.app.models.user import User
 from backend.app.api.authorization import require_course_owner, get_current_user
 
 
+
+# repository and service dependencies
 def get_user_repository(db: Session = Depends(get_db)) -> UserRepository:
     return UserRepository(db=db)
 
@@ -31,6 +36,14 @@ def get_lesson_repository(db: Session = Depends(get_db)) -> LessonRepository:
 
 def get_lesson_service(lesson_repository: LessonRepository = Depends(get_lesson_repository), course_repository: CourseRepository = Depends(get_course_repository)) -> LessonService:
     return LessonService(lesson_repository=lesson_repository, course_repository=course_repository)
+
+def get_course_enrollment_repository(db: Session = Depends(get_db)) -> CourseEnrollmentRepository:
+    return CourseEnrollmentRepository(db=db)
+
+def get_course_enrollment_service(enrollment_repository: CourseEnrollmentRepository = Depends(get_course_enrollment_repository), course_repository: CourseRepository = Depends(get_course_repository)) -> CourseEnrollmentService:
+    return CourseEnrollmentService(enrollment_repository=enrollment_repository, course_repository=course_repository)
+
+# management dependencies
 
 def get_course_for_management(course_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     course_repository = CourseRepository(db=db)
