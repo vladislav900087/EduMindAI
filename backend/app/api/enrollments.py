@@ -11,7 +11,7 @@ router = APIRouter(
     tags=['Enrollments']
 )
 
-@router.post('/courses{course_id}/enroll', response_model=EnrollmentRead, status_code=status.HTTP_201_CREATED)
+@router.post('/courses/{course_id}/enroll', response_model=EnrollmentRead, status_code=status.HTTP_201_CREATED)
 def enroll_in_course(course_id: int, current_user: User = Depends(get_current_user), service: CourseEnrollmentService = Depends(get_course_enrollment_service)):
     if current_user.role != UserRole.STUDENT:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Only students can enroll in courses')
