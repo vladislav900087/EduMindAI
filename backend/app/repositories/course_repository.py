@@ -14,6 +14,13 @@ class CourseRepository:
 
         return course
 
+    def update(self, course: Course) -> Course:
+        self.db.add(course)
+        self.db.commit()
+        self.db.refresh(course)
+
+        return course
+
     def get_by_id(self, course_id: int) -> Course | None:
         statement = select(Course).where(Course.id == course_id)
 

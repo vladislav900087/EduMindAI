@@ -5,7 +5,7 @@ from backend.app.api.security import get_current_user
 from backend.app.models.user import User, UserRole
 from backend.app.schemas.course import CourseCreate, CourseRead
 from backend.app.services.course_service import CourseService
-from backend.app.api.dependencies import get_course_service
+from backend.app.api.dependencies import get_course_service, get_course_for_management
 
 
 router = APIRouter(prefix='/courses', tags=['Courses'])
@@ -13,6 +13,14 @@ router = APIRouter(prefix='/courses', tags=['Courses'])
 @router.post('', response_model=CourseRead, status_code=status.HTTP_201_CREATED)
 def create_course(course_data: CourseCreate, current_user: User = Depends(require_roles(UserRole.TEACHER, UserRole.ADMIN)), service: CourseService = Depends(get_course_service)):
     return service.create_course(course_data, current_user)
+
+
+@router.post('/{course_id}/publish', response_model=CourseRead, status_code=status.HTTP_200_OK)
+def publish_course(course_id: int, course=Depends(get_course_for_management), service: CourseService = Depends(get_course_service)):
+    try:
+        return service.publish_course(course_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
 
 @router.get('', response_model=list[CourseRead], status_code=status.HTTP_200_OK)

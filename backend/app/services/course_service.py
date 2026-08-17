@@ -1,4 +1,4 @@
-from backend.app.models.course import Course
+from backend.app.models.course import Course, CourseStatus
 from backend.app.models.user import User
 from backend.app.repositories.course_repository import CourseRepository
 from backend.app.schemas.course import CourseCreate
@@ -11,6 +11,19 @@ class CourseService:
         course = Course(title=course_data.title, description=course_data.description, teacher_id=teacher.id)
 
         return self.repository.create(course)
+
+    def publish_course(self, course_id: int) -> Course:
+        course = self.repository.get_by_id(course_id)
+
+        if course is None:
+            raise ValueError('Course not found')
+
+        if course.status != CourseStatus.DRAFT:
+            raise ValueError('Only draft courses can be published')
+
+        course.status = CourseStatus.PUBLISHED
+
+        return self.repository.update(course)
 
     def get_course(self, course_id: int) -> Course:
         course = self.repository.get_by_id(course_id)
