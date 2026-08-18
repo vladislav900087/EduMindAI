@@ -13,6 +13,8 @@ from backend.app.services.lesson_service import LessonService
 from backend.app.repositories.course_enrollment_repository import CourseEnrollmentRepository
 from backend.app.services.course_enrollment_service import CourseEnrollmentService
 
+from backend.app.repositories.lesson_progress_repository import LessonProgressRepository
+
 from backend.app.models.user import User
 from backend.app.api.authorization import require_course_owner, get_current_user
 
@@ -42,6 +44,9 @@ def get_course_enrollment_repository(db: Session = Depends(get_db)) -> CourseEnr
 
 def get_course_enrollment_service(enrollment_repository: CourseEnrollmentRepository = Depends(get_course_enrollment_repository), course_repository: CourseRepository = Depends(get_course_repository)) -> CourseEnrollmentService:
     return CourseEnrollmentService(enrollment_repository=enrollment_repository, course_repository=course_repository)
+
+def get_lesson_progress_repository(db: Session = Depends(get_db)) -> LessonProgressRepository:
+    return LessonProgressRepository(db=db)
 
 # management dependencies
 
