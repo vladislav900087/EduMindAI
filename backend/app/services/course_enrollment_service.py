@@ -1,6 +1,7 @@
 from backend.app.models.course_enrollment import CourseEnrollment
 from backend.app.repositories.course_enrollment_repository import CourseEnrollmentRepository
 from backend.app.repositories.course_repository import CourseRepository
+from backend.app.models.course import CourseStatus
 
 class CourseEnrollmentService:
     def __init__(self, enrollment_repository: CourseEnrollmentRepository, course_repository: CourseRepository):
@@ -11,6 +12,10 @@ class CourseEnrollmentService:
         course = self.course_repository.get_by_id(course_id)
         if course is None:
             raise ValueError('Course not found')
+
+        if course.status != CourseStatus.PUBLISHED:
+            raise ValueError('Only published courses can be enrolled in')
+
 
         existing_enrollment = self.enrollment_repository.get_by_student_and_course(student_id=student_id, course_id=course_id)
         if existing_enrollment is not None:

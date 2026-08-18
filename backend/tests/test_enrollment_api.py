@@ -1,5 +1,7 @@
 from backend.app.models.user import User, UserRole
 from backend.app.core.security import hash_password
+from backend.app.services.course_service import CourseService
+from backend.app.repositories.course_repository import CourseRepository
 
 def create_test_user(db_session, email: str, role: UserRole) -> User:
     user = User(email=email, role=role, hashed_password=hash_password('StrongPassword123!'), full_name='Test User')
@@ -31,6 +33,11 @@ def test_student_can_enroll_in_course(client, db_session):
     teacher_token = get_access_token(client, teacher.email)
 
     course_id = create_course(client, teacher_token)
+    course_repository = CourseRepository(db_session)
+    course_service = CourseService(course_repository)
+    published_course = course_service.publish_course(course_id)
+
+    course_id = published_course.id
 
     response = client.post(f'/enrollments/courses/{course_id}/enroll', headers={'Authorization': f'Bearer {student_token}'})
 
@@ -72,6 +79,12 @@ def test_student_cannot_enroll_twice(client, db_session):
     student_token = get_access_token(client, student.email)
 
     course_id = create_course(client, teacher_token)
+    course_repository = CourseRepository(db_session)
+    course_service = CourseService(course_repository)
+
+    published_course = course_service.publish_course(course_id)
+
+    course_id = published_course.id
 
     first_response = client.post(f'/enrollments/courses/{course_id}/enroll', headers={'Authorization': f'Bearer {student_token}'})
     assert first_response.status_code == 201
@@ -86,8 +99,17 @@ def test_student_can_get_his_enrollments(client, db_session):
     teacher_token = get_access_token(client, teacher.email)
     student_token = get_access_token(client, student.email)
 
+    course_repository = CourseRepository(db_session)
+    course_service = CourseService(course_repository)
+
     first_course_id = create_course(client, teacher_token)
     second_course_id = create_course(client, teacher_token)
+
+    published_first_course = course_service.publish_course(first_course_id)
+    published_second_course = course_service.publish_course(second_course_id)
+
+    first_course_id = published_first_course.id
+    second_course_id = published_second_course.id
 
     first_enrollment_response = client.post(f'/enrollments/courses/{first_course_id}/enroll', headers={'Authorization': f'Bearer {student_token}'})
 
@@ -123,6 +145,11 @@ def test_student_can_unenroll_from_course(client, db_session):
     student_token = get_access_token(client, student.email)
 
     course_id = create_course(client, teacher_token)
+    course_repository = CourseRepository(db_session)
+    course_service = CourseService(course_repository)
+
+    published_course = course_service.publish_course(course_id)
+    course_id = published_course.id
 
     enrollment_response = client.post(f'/enrollments/courses/{course_id}/enroll', headers={'Authorization': f'Bearer {student_token}'})
     assert enrollment_response.status_code == 201
@@ -149,6 +176,44 @@ def test_unauthenticated_user_cannot_enroll(client, db_session):
 
     response = client.post(f'/enrollments/courses/{course_id}/enroll')
     assert response.status_code == 401
+
+def test_student_cannot_enroll_in_draft_course(client, db_session):
+    teacher = create_test_user(db_session, 'test_student_cannot_enroll_in_draft_course@example.com', role=UserRole.TEACHER)
+    student = create_test_user(db_session, 'this_student_cannot_enroll_in_draft_course@example.com', role=UserRole.STUDENT)
+    teacher_token = get_access_token(client, teacher.email)
+    student_token = get_access_token(client, student.email)
+
+    course_id = create_course(client, teacher_token)
+
+    response = client.post(f'/enrollments/courses/{course_id}/enroll', headers={'Authorization': f'Bearer {student_token}'})
+
+    assert response.status_code == 400
+
+
+def test_student_can_enroll_in_published_course(client, db_session):
+    teacher = create_test_user(db_session, 'test_student_can_enroll_in_published_course@example.com', role=UserRole.TEACHER)
+    student = create_test_user(db_session, 'this_student_can_enroll_in_published_course@example.com', role=UserRole.STUDENT)
+
+    teacher_token = get_access_token(client, teacher.email)
+    student_token = get_access_token(client, student.email)
+
+    course_id = create_course(client, teacher_token)
+
+    publish_response = client.post(f'/courses/{course_id}/publish', headers={'Authorization': f'Bearer {teacher_token}'})
+
+    assert publish_response.status_code == 200
+
+    data = publish_response.json()
+
+    published_course_id = data['id']
+
+    assert published_course_id == course_id
+
+    enrollment_response = client.post(f'/enrollments/courses/{course_id}/enroll', headers={'Authorization': f'Bearer {student_token}'})
+
+    assert enrollment_response.status_code == 201
+
+
 
 
 

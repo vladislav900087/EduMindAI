@@ -1,10 +1,11 @@
 import pytest
 
-from backend.app.models.course import Course
+from backend.app.models.course import Course, CourseStatus
 from backend.app.models.user import User, UserRole
 from backend.app.repositories.course_enrollment_repository import CourseEnrollmentRepository
 from backend.app.repositories.course_repository import CourseRepository
 from backend.app.services.course_enrollment_service import CourseEnrollmentService
+from backend.app.services.course_service import CourseService
 
 
 def test_enroll_student(db_session):
@@ -32,9 +33,14 @@ def test_enroll_student(db_session):
     enrollment_repository = CourseEnrollmentRepository(db=db_session)
 
     course = course_repository.create(Course(title='Python course', description='Learn Python.', teacher_id=teacher.id))
-    service = CourseEnrollmentService(enrollment_repository=enrollment_repository, course_repository=course_repository)
+    enrollment_service = CourseEnrollmentService(enrollment_repository=enrollment_repository, course_repository=course_repository)
+    course_service = CourseService(repository=course_repository)
 
-    enrollment = service.enroll(student_id=student.id, course_id=course.id)
+    published_course = course_service.publish_course(course_id=course.id)
+
+    assert published_course.status == CourseStatus.PUBLISHED
+
+    enrollment = enrollment_service.enroll(student_id=student.id, course_id=course.id)
 
     assert enrollment is not None
     assert enrollment.student_id == student.id
@@ -86,12 +92,17 @@ def test_duplicate_enrollment_is_rejected(db_session):
 
     course = course_repository.create(Course(title='Duplicate Test Course', description='Test duplicate enrollment', teacher_id=teacher.id))
 
-    service = CourseEnrollmentService(enrollment_repository=enrollment_repository, course_repository=course_repository)
+    enrollment_service = CourseEnrollmentService(enrollment_repository=enrollment_repository, course_repository=course_repository)
+    course_service = CourseService(repository=course_repository)
 
-    service.enroll(student_id=student.id, course_id=course.id)
+    published_course = course_service.publish_course(course_id=course.id)
+
+    assert published_course.status == CourseStatus.PUBLISHED
+
+    enrollment_service.enroll(student_id=student.id, course_id=course.id)
 
     with pytest.raises(ValueError, match='Student is already enrolled'):
-        service.enroll(student_id=student.id, course_id=course.id)
+        enrollment_service.enroll(student_id=student.id, course_id=course.id)
 
 def test_list_student_enrollments(db_session):
     teacher = User(
@@ -119,12 +130,19 @@ def test_list_student_enrollments(db_session):
     course_one = course_repository.create(Course(title='List Test Course One', description='Test list student enrollments', teacher_id=teacher.id))
     course_two = course_repository.create(Course(title='List Test Course Two', description='Test list student enrollments', teacher_id=teacher.id))
 
-    service = CourseEnrollmentService(enrollment_repository=enrollment_repository, course_repository=course_repository)
+    enrollment_service = CourseEnrollmentService(enrollment_repository=enrollment_repository, course_repository=course_repository)
+    course_service = CourseService(repository=course_repository)
 
-    service.enroll(student_id=student.id, course_id=course_one.id)
-    service.enroll(student_id=student.id, course_id=course_two.id)
+    published_course_one = course_service.publish_course(course_id=course_one.id)
+    published_course_two = course_service.publish_course(course_id=course_two.id)
 
-    student_enrollments = service.list_student_enrollments(student_id=student.id)
+    assert published_course_one.status == CourseStatus.PUBLISHED
+    assert published_course_two.status == CourseStatus.PUBLISHED
+
+    enrollment_service.enroll(student_id=student.id, course_id=published_course_one.id)
+    enrollment_service.enroll(student_id=student.id, course_id=published_course_two.id)
+
+    student_enrollments = enrollment_service.list_student_enrollments(student_id=student.id)
 
     assert len(student_enrollments) == 2
 
@@ -162,12 +180,15 @@ def test_list_course_enrollments(db_session):
 
     course = course_repository.create(Course(title='Course List', description='Course list enrollments test', teacher_id=teacher.id))
 
-    service = CourseEnrollmentService(enrollment_repository=enrollment_repository, course_repository=course_repository)
+    enrollment_service = CourseEnrollmentService(enrollment_repository=enrollment_repository, course_repository=course_repository)
+    course_service = CourseService(repository=course_repository)
 
-    service.enroll(student_id=student_one.id, course_id=course.id)
-    service.enroll(student_id=student_two.id, course_id=course.id)
+    published_course = course_service.publish_course(course_id=course.id)
 
-    course_enrollments = service.list_course_enrollments(course_id=course.id)
+    enrollment_service.enroll(student_id=student_one.id, course_id=published_course.id)
+    enrollment_service.enroll(student_id=student_two.id, course_id=published_course.id)
+
+    course_enrollments = enrollment_service.list_course_enrollments(course_id=course.id)
 
     assert len(course_enrollments) == 2
 
@@ -196,12 +217,16 @@ def test_unenroll_student(db_session):
     enrollment_repository = CourseEnrollmentRepository(db=db_session)
 
     course = course_repository.create(Course(title='Unenroll student test', description='Student unenrollment test', teacher_id=teacher.id))
-    service = CourseEnrollmentService(enrollment_repository=enrollment_repository, course_repository=course_repository)
-    # student enrollment
-    service.enroll(student_id=student.id, course_id=course.id)
+    enrollment_service = CourseEnrollmentService(enrollment_repository=enrollment_repository, course_repository=course_repository)
+    course_service = CourseService(repository=course_repository)
 
-    student_enrollments = service.list_student_enrollments(student_id=student.id)
-    course_enrollments = service.list_course_enrollments(course_id=course.id)
+    # course publishing
+    course = course_service.publish_course(course_id=course.id)
+    # student enrollment
+    enrollment_service.enroll(student_id=student.id, course_id=course.id)
+
+    student_enrollments = enrollment_service.list_student_enrollments(student_id=student.id)
+    course_enrollments = enrollment_service.list_course_enrollments(course_id=course.id)
     current_enrollment = enrollment_repository.get_by_student_and_course(student_id=student.id, course_id=course.id)
     # test student and course enrollments
     assert len(student_enrollments) == 1
@@ -209,10 +234,10 @@ def test_unenroll_student(db_session):
     assert current_enrollment == student_enrollments[0]
 
     # student unenrollment
-    service.unenroll(student_id=student.id, course_id=course.id)
+    enrollment_service.unenroll(student_id=student.id, course_id=course.id)
 
-    student_enrollments = service.list_student_enrollments(student_id=student.id)
-    course_enrollments = service.list_course_enrollments(course_id=course.id)
+    student_enrollments = enrollment_service.list_student_enrollments(student_id=student.id)
+    course_enrollments = enrollment_service.list_course_enrollments(course_id=course.id)
     current_enrollment = enrollment_repository.get_by_student_and_course(student_id=student.id, course_id=course.id)
 
     # test whether student has unenrolled from the course
