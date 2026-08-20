@@ -273,6 +273,186 @@ def test_cannot_publish_already_published_course(client, db_session):
     assert data['detail'] == 'Only draft courses can be published'
 
 
+def test_student_can_get_course_progress(client, db_session):
+    teacher = create_test_user(db_session, email='test_student_can_get_course_progress_test_teacher@example.com', role=UserRole.TEACHER)
+    student = create_test_user(db_session, email='this_student_can_get_course_progress@example.com', role=UserRole.STUDENT)
+
+    teacher_token = get_access_token(client, teacher.email)
+    student_token = get_access_token(client, student.email)
+
+    create_course_response = client.post('/courses', headers={'Authorization': f'Bearer {teacher_token}'}, json={'title': 'A course for STUDENT to view his own progress', 'description': 'Student ACTUALLY can view his course progress'})
+    assert create_course_response.status_code == 201
+
+    data = create_course_response.json()
+
+    assert data is not None
+    assert data['status'] == CourseStatus.DRAFT
+
+    course_id = data['id']
+
+
+    publish_course_response = client.post(f'/courses/{course_id}/publish', headers={'Authorization': f'Bearer {teacher_token}'})
+
+    assert publish_course_response.status_code == 200
+    data = publish_course_response.json()
+
+    assert data is not None
+    assert data['status'] == CourseStatus.PUBLISHED
+
+    published_course_id = data['id']
+
+    assert published_course_id == course_id
+
+    create_lesson_one_response = client.post(f'/courses/{published_course_id}/lessons', headers={'Authorization': f'Bearer {teacher_token}'}, json={'title': 'Lesson one', 'content': 'Lesson one content'})
+
+    assert create_lesson_one_response.status_code == 201
+
+    lesson_one_data = create_lesson_one_response.json()
+    assert lesson_one_data is not None
+    assert lesson_one_data['course_id'] == published_course_id
+
+    lesson_one_id = lesson_one_data['id']
+
+    create_lesson_two_response = client.post(f'/courses/{published_course_id}/lessons', headers={'Authorization': f'Bearer {teacher_token}'}, json={'title': 'Lesson two', 'content': 'Lesson two content'})
+    assert create_lesson_two_response.status_code == 201
+
+    lesson_two_data = create_lesson_two_response.json()
+
+    assert lesson_two_data is not None
+    assert lesson_two_data['course_id'] == published_course_id
+
+    lesson_two_id = lesson_two_data['id']
+
+    create_lesson_three_response = client.post(f'/courses/{published_course_id}/lessons', headers={'Authorization': f'Bearer {teacher_token}'}, json={'title': 'Lesson three', 'content': 'Lesson three content'})
+
+    assert create_lesson_three_response.status_code == 201
+
+    lesson_three_data = create_lesson_three_response.json()
+
+    assert lesson_three_data is not None
+    assert lesson_three_data['course_id'] == published_course_id
+
+    lesson_three_id = lesson_three_data['id']
+
+    create_lesson_four_response = client.post(f'/courses/{published_course_id}/lessons', headers={'Authorization': f'Bearer {teacher_token}'}, json={'title': 'Lesson four', 'content': 'Lesson four content'})
+    assert create_lesson_four_response.status_code == 201
+
+    lesson_four_data = create_lesson_four_response.json()
+
+    assert lesson_four_data is not None
+    assert lesson_four_data['course_id'] == published_course_id
+
+    lesson_four_id = lesson_four_data['id']
+
+    student_course_enrollment_response = client.post(f'/enrollments/courses/{published_course_id}/enroll', headers={'Authorization': f'Bearer {student_token}'})
+
+    assert student_course_enrollment_response.status_code == 201
+
+    student_course_enrollment_data = student_course_enrollment_response.json()
+
+    assert student_course_enrollment_data is not None
+    assert student_course_enrollment_data['course_id'] == published_course_id
+    assert student_course_enrollment_data['student_id'] == student.id
+
+    student_marks_lesson_one_complete_response = client.post(f'/lessons/{lesson_one_id}/complete', headers={'Authorization': f'Bearer {student_token}'})
+
+    assert student_marks_lesson_one_complete_response.status_code == 201
+
+    completed_lesson_one_data = student_marks_lesson_one_complete_response.json()
+
+    assert completed_lesson_one_data is not None
+    assert completed_lesson_one_data['lesson_id'] == lesson_one_id
+    assert completed_lesson_one_data['student_id'] == student.id
+
+    student_marks_lesson_two_complete_response = client.post(f'/lessons/{lesson_two_id}/complete', headers={'Authorization': f'Bearer {student_token}'})
+    assert student_marks_lesson_two_complete_response.status_code == 201
+
+    completed_lesson_two_data = student_marks_lesson_two_complete_response.json()
+
+    assert completed_lesson_two_data is not None
+    assert completed_lesson_two_data['lesson_id'] == lesson_two_id
+    assert completed_lesson_two_data['student_id'] == student.id
+
+    student_gets_course_progress_response = client.get(f'/courses/{course_id}/progress', headers={'Authorization': f'Bearer {student_token}'})
+
+    assert student_gets_course_progress_response.status_code == 200
+
+    students_received_progress_data = student_gets_course_progress_response.json()
+
+    assert students_received_progress_data is not None
+    assert students_received_progress_data['course_id'] == published_course_id
+    assert students_received_progress_data['total_lessons'] == 4
+    assert students_received_progress_data['completed_lessons'] == 2
+    assert students_received_progress_data['progress_percentage'] == 50.0
+
+
+def test_unenrolled_student_cannot_get_course_progress(client, db_session):
+
+    teacher = create_test_user(db_session, email='test_unenrolled_student_cannot_get_course_progress_test_teacher@example.com', role=UserRole.TEACHER)
+    student = create_test_user(db_session, email='this_student_is_unenrolled_and_that_is_why_he_cannot_get_his_own_course_progress@example.com', role=UserRole.STUDENT)
+
+    teacher_token = get_access_token(client, teacher.email)
+    student_token = get_access_token(client, student.email)
+
+    create_course_response = client.post('/courses', headers={'Authorization': f'Bearer {teacher_token}'}, json={'title': 'A course that cannot be viewed by an unenrolled student', 'description': 'This course and its progress should not be viewed by unenrolled students.'})
+
+    assert create_course_response.status_code == 201
+
+    created_course_data = create_course_response.json()
+
+    assert created_course_data is not None
+    assert created_course_data['title'] == 'A course that cannot be viewed by an unenrolled student'
+    assert created_course_data['status'] == CourseStatus.DRAFT
+
+    created_course_id = created_course_data['id']
+
+    publish_course_response = client.post(f'/courses/{created_course_id}/publish', headers={'Authorization': f'Bearer {teacher_token}'})
+
+    assert publish_course_response.status_code == 200
+
+    published_course_data = publish_course_response.json()
+
+    assert published_course_data is not None
+    assert published_course_data['id'] == created_course_id
+
+    published_course_id = published_course_data['id']
+
+    student_tries_getting_course_progress_without_enrollment_response = client.get(f'/courses/{published_course_id}/progress', headers={'Authorization': f'Bearer {student_token}'})
+
+    assert student_tries_getting_course_progress_without_enrollment_response.status_code == 400
+
+
+def test_student_cannot_get_course_progress_for_missing_course(client, db_session):
+
+    student = create_test_user(db_session, email='this_student_cannot_get_course_progress_for_missing_course@example.com', role=UserRole.STUDENT)
+
+    student_token = get_access_token(client, student.email)
+
+    student_tries_to_get_progress_for_missing_course_response = client.get('/courses/999999/progress', headers={'Authorization': f'Bearer {student_token}'})
+
+    assert student_tries_to_get_progress_for_missing_course_response.status_code == 400
+
+
+def test_teacher_cannot_get_course_progress(client, db_session):
+    teacher = create_test_user(db_session, email='test_teacher_cannot_get_course_progress_test_teacher@example.com', role=UserRole.TEACHER)
+
+    teacher_token = get_access_token(client, teacher.email)
+
+    teacher_tries_to_get_course_progress_response = client.get('/courses/999999/progress', headers={'Authorization': f'Bearer {teacher_token}'})
+    assert teacher_tries_to_get_course_progress_response.status_code == 403
+
+
+def test_unauthenticated_user_cannot_get_course_progress(client, db_session):
+
+    unauthenticated_user_tries_to_get_course_progress_response = client.get('/courses/999999/progress')
+
+    assert unauthenticated_user_tries_to_get_course_progress_response.status_code == 401
+
+
+
+
+
+
 
 
 
