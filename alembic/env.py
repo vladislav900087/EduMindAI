@@ -11,6 +11,7 @@ from backend.app.models.course import Course
 from backend.app.models.lesson import Lesson
 from backend.app.models.course_enrollment import CourseEnrollment
 from backend.app.models.lesson_progress import LessonProgress
+from backend.app.models.quiz import Quiz
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

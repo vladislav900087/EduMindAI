@@ -16,6 +16,8 @@ from backend.app.services.course_enrollment_service import CourseEnrollmentServi
 from backend.app.repositories.lesson_progress_repository import LessonProgressRepository
 from backend.app.services.lesson_progress_service import LessonProgressService
 
+from backend.app.repositories.quiz_repository import QuizRepository
+
 from backend.app.models.user import User
 from backend.app.api.authorization import require_course_owner, get_current_user
 
@@ -52,6 +54,10 @@ def get_lesson_progress_repository(db: Session = Depends(get_db)) -> LessonProgr
 def get_lesson_progress_service(progress_repository: LessonProgressRepository = Depends(get_lesson_progress_repository), enrollment_repository: CourseEnrollmentRepository = Depends(get_course_enrollment_repository), lesson_repository: LessonRepository = Depends(get_lesson_repository), course_repository: CourseRepository = Depends(get_course_repository)) -> LessonProgressService:
 
     return LessonProgressService(progress_repository=progress_repository, enrollment_repository=enrollment_repository, lesson_repository=lesson_repository, course_repository=course_repository)
+
+# quiz repository and service
+def get_quiz_repository(db: Session = Depends(get_db)) -> QuizRepository:
+    return QuizRepository(db=db)
 
 # management dependencies
 
