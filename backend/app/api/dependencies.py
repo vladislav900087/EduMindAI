@@ -19,8 +19,13 @@ from backend.app.services.lesson_progress_service import LessonProgressService
 from backend.app.repositories.quiz_repository import QuizRepository
 from backend.app.services.quiz_service import QuizService
 
+from backend.app.repositories.quiz_question_repository import QuizQuestionRepository
+from backend.app.services.quiz_question_service import QuizQuestionService
+
 from backend.app.models.user import User
 from backend.app.api.authorization import require_course_owner, get_current_user
+
+from backend.app.models.quiz import Quiz
 
 
 
@@ -63,6 +68,15 @@ def get_quiz_repository(db: Session = Depends(get_db)) -> QuizRepository:
 def get_quiz_service(quiz_repository: QuizRepository = Depends(get_quiz_repository)) -> QuizService:
     return QuizService(quiz_repository)
 
+# quiz questions repository and service
+
+def get_quiz_questions_repository(db: Session = Depends(get_db)) -> QuizQuestionRepository:
+    return QuizQuestionRepository(db=db)
+
+def get_quiz_questions_service(question_repository: QuizQuestionRepository = Depends(get_quiz_questions_repository), quiz_repository: QuizRepository = Depends(get_quiz_repository)) -> QuizQuestionService:
+
+    return QuizQuestionService(quiz_repository=quiz_repository, question_repository=question_repository)
+
 # management dependencies
 
 def get_course_for_management(course_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -94,6 +108,25 @@ def get_lesson_for_management(lesson_id: int, current_user: User = Depends(get_c
     require_course_owner(course, current_user)
 
     return lesson
+
+def get_quiz_for_management(quiz_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    quiz_repository = QuizRepository(db=db)
+    course_repository = CourseRepository(db=db)
+
+    quiz = quiz_repository.get_by_id(quiz_id)
+
+    if quiz is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Quiz not found')
+
+    course = course_repository.get_by_id(quiz.course_id)
+
+    if course is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Course not found')
+
+    require_course_owner(course, current_user)
+
+    return quiz
+
 
 
 
