@@ -22,10 +22,17 @@ from backend.app.services.quiz_service import QuizService
 from backend.app.repositories.quiz_question_repository import QuizQuestionRepository
 from backend.app.services.quiz_question_service import QuizQuestionService
 
+from backend.app.repositories.quiz_attempt_repository import QuizAttemptRepository
+from backend.app.services.quiz_attempt_service import QuizAttemptService
+
+
+from backend.app.repositories.quiz_attempt_answer_repository import QuizAttemptAnswerRepository
+
 from backend.app.models.user import User
 from backend.app.api.authorization import require_course_owner, get_current_user
 
-from backend.app.models.quiz import Quiz
+
+
 
 
 
@@ -76,6 +83,19 @@ def get_quiz_questions_repository(db: Session = Depends(get_db)) -> QuizQuestion
 def get_quiz_questions_service(question_repository: QuizQuestionRepository = Depends(get_quiz_questions_repository), quiz_repository: QuizRepository = Depends(get_quiz_repository)) -> QuizQuestionService:
 
     return QuizQuestionService(quiz_repository=quiz_repository, question_repository=question_repository)
+
+def get_quiz_attempt_repository(db: Session = Depends(get_db)) -> QuizAttemptRepository:
+    return QuizAttemptRepository(db=db)
+
+def get_quiz_attempt_answer_repository(db: Session = Depends(get_db)) -> QuizAttemptAnswerRepository:
+    return QuizAttemptAnswerRepository(db=db)
+
+
+def get_quiz_attempt_service(attempt_repository: QuizAttemptRepository = Depends(get_quiz_attempt_repository), quiz_repository: QuizRepository = Depends(get_quiz_repository), enrollment_repository: CourseEnrollmentRepository = Depends(get_course_enrollment_repository), question_repository: QuizQuestionRepository = Depends(get_quiz_questions_repository), answer_repository: QuizAttemptAnswerRepository = Depends(get_quiz_attempt_answer_repository)) -> QuizAttemptService:
+    return QuizAttemptService(attempt_repository=attempt_repository, quiz_repository=quiz_repository, enrollment_repository=enrollment_repository, question_repository=question_repository, answer_repository=answer_repository)
+
+
+
 
 # management dependencies
 
