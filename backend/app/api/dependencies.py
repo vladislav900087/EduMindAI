@@ -27,6 +27,11 @@ from backend.app.services.quiz_attempt_service import QuizAttemptService
 
 
 from backend.app.repositories.quiz_attempt_answer_repository import QuizAttemptAnswerRepository
+from backend.app.repositories.assignment_repository import AssignmentRepository
+from backend.app.services.assignment_service import AssignmentService
+
+from backend.app.repositories.assignment_submission_repository import AssignmentSubmissionRepository
+from backend.app.services.assignment_submission_service import AssignmentSubmissionService
 
 from backend.app.models.user import User
 from backend.app.api.authorization import require_course_owner, get_current_user
@@ -95,6 +100,18 @@ def get_quiz_attempt_service(attempt_repository: QuizAttemptRepository = Depends
     return QuizAttemptService(attempt_repository=attempt_repository, quiz_repository=quiz_repository, enrollment_repository=enrollment_repository, question_repository=question_repository, answer_repository=answer_repository)
 
 
+def get_assignment_repository(db: Session = Depends(get_db)) -> AssignmentRepository:
+    return AssignmentRepository(db=db)
+
+def get_assignment_service(assignment_repository: AssignmentRepository = Depends(get_assignment_repository), course_repository: CourseRepository = Depends(get_course_repository)) -> AssignmentService:
+    return AssignmentService(repository=assignment_repository, course_repository=course_repository)
+
+def get_submission_repository(db: Session = Depends(get_db)) -> AssignmentSubmissionRepository:
+    return AssignmentSubmissionRepository(db=db)
+
+def get_submission_service(submission_repository: AssignmentSubmissionRepository = Depends(get_submission_repository), enrollment_repository: CourseEnrollmentRepository = Depends(get_course_enrollment_repository), assignment_repository: AssignmentRepository = Depends(get_assignment_repository)):
+    return AssignmentSubmissionService(submission_repository=submission_repository, enrollment_repository=enrollment_repository, assignment_repository=assignment_repository)
+
 
 
 # management dependencies
@@ -146,6 +163,46 @@ def get_quiz_for_management(quiz_id: int, current_user: User = Depends(get_curre
     require_course_owner(course, current_user)
 
     return quiz
+
+def get_assignment_for_management(assignment_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    assignment_repository = AssignmentRepository(db=db)
+    course_repository = CourseRepository(db=db)
+
+    assignment = assignment_repository.get_by_id(assignment_id)
+    if assignment is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Assignment not found')
+
+    course = course_repository.get_by_id(assignment.course_id)
+
+    if course is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Course not found')
+
+    require_course_owner(course, current_user)
+
+    return assignment
+
+def get_submission_for_management(submission_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    submission_repository = AssignmentSubmissionRepository(db=db)
+    assignment_repository = AssignmentRepository(db=db)
+    course_repository = CourseRepository(db=db)
+
+    submission = submission_repository.get_by_id(submission_id)
+    if submission is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Submission not found')
+
+    assignment = assignment_repository.get_by_id(submission.assignment_id)
+
+    if assignment is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Assignment not found')
+
+    course = course_repository.get_by_id(assignment.course_id)
+
+    if course is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Course not found')
+
+    require_course_owner(course, current_user)
+
+    return submission
 
 
 

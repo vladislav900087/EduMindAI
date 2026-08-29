@@ -8,6 +8,7 @@ from backend.app.api.enrollments import router as enrollments_router
 from backend.app.api.quizzes import (router as quiz_router, course_router as quiz_course_router)
 from backend.app.api.quiz_questions import (router as quiz_question_router, question_router)
 from backend.app.api.quiz_attempts import router as quiz_attempt_router
+from backend.app.api.assignments import router as assignment_router, submission_router
 
 router = APIRouter()
 
@@ -22,6 +23,8 @@ router.include_router(quiz_course_router)
 router.include_router(quiz_question_router)
 router.include_router(question_router)
 router.include_router(quiz_attempt_router)
+router.include_router(assignment_router)
+router.include_router(submission_router)
 
 @router.get('/health')
 def health_check():

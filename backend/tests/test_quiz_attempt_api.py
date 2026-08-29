@@ -16,6 +16,7 @@ from backend.app.models.quiz_option import QuizOption
 from backend.app.core.security import hash_password
 import uuid
 from backend.tests.test_quiz_attempt_service import create_test_environment as cte, create_attempt_and_submit_answer
+from typing import Optional
 
 
 
@@ -77,7 +78,7 @@ def create_test_environment(db_session, client):
 
     return token, quiz.id, question.id, correct_option.id
 
-def create_test_user_and_login(db_session, client, role: UserRole):
+def create_test_user_and_login(db_session, client, role: UserRole, include_user: Optional[bool] = False):
     user_repository = UserRepository(db_session)
 
     uid = uuid.uuid4().hex[:8]
@@ -90,8 +91,10 @@ def create_test_user_and_login(db_session, client, role: UserRole):
     assert login_response.status_code == 200
 
     token = login_response.json()['access_token']
-
-    return token
+    if include_user:
+        return user, token
+    else:
+        return token
 
 
 def test_student_can_complete_quiz_attempt(db_session, client):
