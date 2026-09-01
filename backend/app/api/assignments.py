@@ -1,11 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from backend.app.api.dependencies import get_current_user, get_assignment_service, get_assignment_for_management, get_course_for_management, get_submission_service, get_submission_for_management
+from backend.app.api.dependencies import get_current_user, get_assignment_service, get_assignment_for_management, get_course_for_management, get_submission_service, get_submission_for_management, get_user_repository
 from backend.app.schemas.assignment import AssignmentCreate, AssignmentRead
 from backend.app.models.user import User, UserRole
 from backend.app.services.assignment_service import AssignmentService
 from backend.app.services.assignment_submission_service import AssignmentSubmissionService
 from backend.app.schemas.assignment_submission import AssignmentSubmissionRead, AssignmentSubmissionCreate, AssignmentSubmissionGrade
 from backend.app.utils.handle_service_error import handle_service_error
+from backend.app.repositories.user_repository import UserRepository
+
 
 
 

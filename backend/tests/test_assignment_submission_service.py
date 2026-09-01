@@ -8,6 +8,8 @@ from backend.app.schemas.assignment_submission import AssignmentSubmissionCreate
 import uuid
 import pytest
 from datetime import datetime, timezone, timedelta
+from unittest.mock import patch, MagicMock
+from backend.app.tasks.notifications import send_assignment_graded_notification
 
 
 def create_submission_service(db_session, submission_repository: AssignmentSubmissionRepository) -> AssignmentSubmissionService:
@@ -305,28 +307,6 @@ def test_feedback_can_be_empty(db_session):
     graded_submission = service.grade_submission(submission=submission, grade=100)
 
     assert graded_submission.feedback is None
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

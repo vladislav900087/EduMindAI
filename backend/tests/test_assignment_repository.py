@@ -9,6 +9,7 @@ from backend.app.models.assignment import Assignment
 
 from backend.app.core.security import hash_password
 import uuid
+from datetime import datetime, timedelta, timezone
 import pytest
 
 
@@ -117,6 +118,29 @@ def test_delete_assignment(db_session):
     course_assignments = assignment_repository.list_by_course(course.id)
 
     assert len(course_assignments) == 0
+
+
+def test_list_due_between_returns_only_assignments_in_window(db_session):
+    teacher, course, assignment_repository = create_test_environment(db_session)
+    now = datetime.now(timezone.utc)
+
+    assignment_repository.create(Assignment(title='Due Soon', description='Should be returned', course_id=course.id, due_at=now + timedelta(hours=12)))
+    assignment_repository.create(Assignment(title='Due Later', description='Should not be returned', course_id=course.id, due_at=now + timedelta(days=3)))
+    assignment_repository.create(Assignment(title='No Due Date', description='Should not be returned', course_id=course.id, due_at=None))
+
+    assignments = assignment_repository.list_due_between(start_at=now, end_at=now + timedelta(hours=24))
+
+    assignment_titles = [assignment.title for assignment in assignments]
+
+    assert "Due Soon" in assignment_titles
+    assert 'Due Later' not in assignment_titles
+    assert 'No Due Date' not in assignment_titles
+
+
+
+
+
+
 
 
 

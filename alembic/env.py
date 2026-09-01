@@ -18,6 +18,7 @@ from backend.app.models.quiz_attempt import QuizAttempt
 from backend.app.models.quiz_attempt_answer import QuizAttemptAnswer
 from backend.app.models.assignment import Assignment
 from backend.app.models.assignment_submission import AssignmentSubmission
+from backend.app.models.assignment_deadline_reminder import AssignmentDeadlineReminder
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

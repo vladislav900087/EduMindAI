@@ -10,6 +10,7 @@ from backend.app.models.assignment import Assignment
 from backend.app.models.user import UserRole
 
 
+
 def get_token(db_session, client, student_id: int) -> str:
     user_repository = UserRepository(db_session)
     current_user = user_repository.get_by_id(student_id)
@@ -359,6 +360,7 @@ def test_invalid_grade_is_rejected(client, db_session):
     response_two = client.put(f'/submissions/{submission.id}/grade', headers={"Authorization": f'Bearer {teacher_token}'}, json={"grade": -1, 'feedback': 'Invalid Grade!'})
 
     assert response_two.status_code == 400
+
 
 
 

@@ -4,6 +4,14 @@ from backend.app.repositories.course_enrollment_repository import CourseEnrollme
 from backend.app.schemas.assignment_submission import AssignmentSubmissionCreate
 from backend.app.models.assignment_submission import AssignmentSubmission
 from datetime import datetime, timezone
+import logging
+
+
+
+from backend.app.tasks.notifications import send_assignment_graded_notification
+
+
+logger = logging.getLogger(__name__)
 
 
 
@@ -12,6 +20,7 @@ class AssignmentSubmissionService:
         self.submission_repository = submission_repository
         self.enrollment_repository = enrollment_repository
         self.assignment_repository = assignment_repository
+
 
     def create_submission(self, submission_data: AssignmentSubmissionCreate, assignment_id: int, student_id: int) -> AssignmentSubmission:
         assignment = self.assignment_repository.get_by_id(assignment_id)
@@ -88,9 +97,26 @@ class AssignmentSubmissionService:
             if feedback is not None:
                 submission.feedback = feedback
 
-            return self.submission_repository.update(submission)
+            graded_submission = self.submission_repository.update(submission)
+            try:
+
+                task = send_assignment_graded_notification.delay(student_email=submission.student.email,
+                                                          assignment_title=submission.assignment.title, grade=grade,
+                                                          feedback=feedback)
+
+                logger.info('Assignment notification queued %s', task.id)
+
+            except Exception as exc:
+                logger.error(f'Failed to queue graded notification task {exc}')
+
+
+
+            return graded_submission
         else:
             raise ValueError('Grade must be between 0 and 100')
+
+
+
 
 
 

@@ -1,5 +1,6 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+from datetime import datetime
 
 from backend.app.models.assignment import Assignment
 
@@ -24,6 +25,11 @@ class AssignmentRepository:
         statement = (select(Assignment).where(Assignment.course_id == course_id).order_by(Assignment.created_at.asc()))
 
         return list(self.db.scalars(statement))
+
+    def list_due_between(self, start_at: datetime, end_at: datetime) -> list[Assignment]:
+        assignments = self.db.query(Assignment).filter(Assignment.due_at.isnot(None), Assignment.due_at >= start_at, Assignment.due_at <= end_at).all()
+        return list(assignments)
+
 
     def update(self, assignment: Assignment) -> Assignment:
         self.db.commit()

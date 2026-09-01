@@ -41,6 +41,10 @@ from backend.app.api.authorization import require_course_owner, get_current_user
 
 
 
+
+
+
+
 # repository and service dependencies
 def get_user_repository(db: Session = Depends(get_db)) -> UserRepository:
     return UserRepository(db=db)
@@ -203,6 +207,9 @@ def get_submission_for_management(submission_id: int, current_user: User = Depen
     require_course_owner(course, current_user)
 
     return submission
+
+
+
 
 
 
