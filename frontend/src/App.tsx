@@ -10,6 +10,8 @@ import DashboardPage from './pages/DashboardPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage'
 
+import ProtectedRoute from './auth/ProtectedRoute';
+
 
 function App() {
 
@@ -19,13 +21,15 @@ function App() {
             <Route path='/login' element={<LoginPage />} />
             <Route path='/register' element={<RegisterPage />} />
 
-            <Route element={<AppLayout />}>
-                <Route path='/dashboard' element={<DashboardPage />} />
-                <Route path='/courses' element={<CoursesPage />} />
-                <Route path='/courses/:courseId' element={<CourseDetailPage />} />
-                <Route path='/assignments' element={<AssignmentsPage />} />
-                <Route path='/assignments/:assignmentId' element={<AssignmentDetailPage />} />
-                <Route path='/quizzes/:quizId/take' element={<QuizTakingPage />} />
+            <Route element={<ProtectedRoute />}>
+                <Route element={<AppLayout />}>
+                    <Route path='/dashboard' element={<DashboardPage />} />
+                    <Route path='/courses' element={<CoursesPage />} />
+                    <Route path='/courses/:courseId' element={<CourseDetailPage />} />
+                    <Route path='/assignments' element={<AssignmentsPage />} />
+                    <Route path='/assignments/:assignmentId' element={<AssignmentDetailPage />} />
+                    <Route path='/quizzes/:quizId/take' element={<QuizTakingPage />} />
+                </Route>
             </Route>
         </Routes>
 
