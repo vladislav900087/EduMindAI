@@ -14,7 +14,7 @@ def create_quiz(course_id: int, quiz_data: QuizCreate, course=Depends(get_course
     return service.create_quiz(course_id=course_id, quiz_data=quiz_data)
 
 @course_router.get('/{course_id}/quizzes', response_model=list[QuizRead], status_code=status.HTTP_200_OK)
-def list_course_quizzes(course_id: int, course=Depends(get_course_for_management), service: QuizService = Depends(get_quiz_service)):
+def list_course_quizzes(course_id: int, service: QuizService = Depends(get_quiz_service)):
 
     return service.list_course_quizzes(course_id=course_id)
 

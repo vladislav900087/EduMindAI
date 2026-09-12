@@ -22,3 +22,10 @@ export async function completeLesson(lessonId: number): Promise<LessonProgress> 
     return response.data;
 
     }
+
+export async function getMyProgress(): Promise<LessonProgress[]> {
+
+    const response = await apiClient.get<LessonProgress[]>('/lessons/progress/me');
+    return response.data;
+
+    }

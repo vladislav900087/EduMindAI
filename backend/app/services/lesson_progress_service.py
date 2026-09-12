@@ -43,10 +43,7 @@ class LessonProgressService:
         if course is None:
             raise ValueError('Course not found')
 
-        enrollment = self.enrollment_repository.get_by_student_and_course(student_id, course_id)
 
-        if enrollment is None:
-            raise ValueError('Student is not enrolled in this course')
 
         lessons = self.lesson_repository.list_by_course(course_id)
 

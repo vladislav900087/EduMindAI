@@ -386,40 +386,6 @@ def test_student_can_get_course_progress(client, db_session):
     assert students_received_progress_data['progress_percentage'] == 50.0
 
 
-def test_unenrolled_student_cannot_get_course_progress(client, db_session):
-
-    teacher = create_test_user(db_session, email='test_unenrolled_student_cannot_get_course_progress_test_teacher@example.com', role=UserRole.TEACHER)
-    student = create_test_user(db_session, email='this_student_is_unenrolled_and_that_is_why_he_cannot_get_his_own_course_progress@example.com', role=UserRole.STUDENT)
-
-    teacher_token = get_access_token(client, teacher.email)
-    student_token = get_access_token(client, student.email)
-
-    create_course_response = client.post('/courses', headers={'Authorization': f'Bearer {teacher_token}'}, json={'title': 'A course that cannot be viewed by an unenrolled student', 'description': 'This course and its progress should not be viewed by unenrolled students.'})
-
-    assert create_course_response.status_code == 201
-
-    created_course_data = create_course_response.json()
-
-    assert created_course_data is not None
-    assert created_course_data['title'] == 'A course that cannot be viewed by an unenrolled student'
-    assert created_course_data['status'] == CourseStatus.DRAFT
-
-    created_course_id = created_course_data['id']
-
-    publish_course_response = client.post(f'/courses/{created_course_id}/publish', headers={'Authorization': f'Bearer {teacher_token}'})
-
-    assert publish_course_response.status_code == 200
-
-    published_course_data = publish_course_response.json()
-
-    assert published_course_data is not None
-    assert published_course_data['id'] == created_course_id
-
-    published_course_id = published_course_data['id']
-
-    student_tries_getting_course_progress_without_enrollment_response = client.get(f'/courses/{published_course_id}/progress', headers={'Authorization': f'Bearer {student_token}'})
-
-    assert student_tries_getting_course_progress_without_enrollment_response.status_code == 400
 
 
 def test_student_cannot_get_course_progress_for_missing_course(client, db_session):

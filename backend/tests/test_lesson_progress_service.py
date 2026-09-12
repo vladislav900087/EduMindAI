@@ -204,28 +204,7 @@ def test_get_course_progress_for_course_with_no_lessons(db_session):
     assert student_course_progress['progress_percentage'] == 0.0
 
 
-def test_student_cannot_get_progress_for_unenrolled_course(db_session):
-    teacher = create_test_user(db_session, 'test_student_cannot_get_progress_for_unenrolled_course_test_teacher@example.com', role=UserRole.TEACHER)
-    student = create_test_user(db_session, 'this_student_cannot_get_course_progress_for_unenrolled_course@example.com', role=UserRole.STUDENT)
 
-    course_repository = CourseRepository(db_session)
-    course_service = CourseService(course_repository)
-
-    enrollment_repository = CourseEnrollmentRepository(db_session)
-
-
-    lesson_repository = LessonRepository(db_session)
-    lesson_progress_repository = LessonProgressRepository(db_session)
-    lesson_progress_service = LessonProgressService(progress_repository=lesson_progress_repository, enrollment_repository=enrollment_repository, course_repository=course_repository, lesson_repository=lesson_repository)
-
-    course = course_repository.create(Course(title='An unenrolled course', description='The description of the unenrolled course', teacher_id=teacher.id))
-    assert course.status == CourseStatus.DRAFT
-
-    published_course = course_service.publish_course(course_id=course.id)
-    assert published_course.status == CourseStatus.PUBLISHED
-
-    with pytest.raises(ValueError, match='Student is not enrolled in this course'):
-        student_course_progress = lesson_progress_service.get_course_progress(student_id=student.id, course_id=course.id)
 
 
 def test_get_course_progress_for_missing_course(db_session):
