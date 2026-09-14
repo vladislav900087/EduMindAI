@@ -474,7 +474,7 @@ function CourseDetailPage() {
                             <Link
                                 key={quiz.id}
                                 className='block border-b border-slate-100 py-3 last:border-0'
-                                to={`/quizzes/${quiz.id}/take`}
+                                to={canManageCourse ? `/quizzes/${quiz.id}/manage` : `/quizzes/${quiz.id}/take`}
                             >
                                 <h3 className='font-medium text-slate-900'>{quiz.title}</h3>
                                 <p className='mt-1 text-sm text-slate-600'>

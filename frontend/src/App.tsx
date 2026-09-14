@@ -6,6 +6,7 @@ import AssignmentsPage from './pages/AssignmentsPage';
 import CourseDetailPage from './pages/CourseDetailPage';
 import CoursesPage from './pages/CoursesPage';
 import QuizTakingPage from './pages/QuizTakingPage';
+import QuizManagePage from './pages/QuizManagePage';
 import DashboardPage from './pages/DashboardPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage'
@@ -29,6 +30,7 @@ function App() {
                     <Route path='/assignments' element={<AssignmentsPage />} />
                     <Route path='/assignments/:assignmentId' element={<AssignmentDetailPage />} />
                     <Route path='/quizzes/:quizId/take' element={<QuizTakingPage />} />
+                    <Route path='/quizzes/:quizId/manage' element={<QuizManagePage />} />
                 </Route>
             </Route>
         </Routes>
