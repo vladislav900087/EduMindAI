@@ -42,3 +42,42 @@ export type QuizQuestion = {
     options: QuizOption[];
 
     };
+
+export type QuizTakingOption = {
+    id: number;
+    option_text: string;
+
+    };
+
+export type QuizTakingQuestion = {
+    id: number;
+    question_text: string;
+    options: QuizTakingOption[];
+    };
+
+
+export type QuizAttempt = {
+    id: number;
+    student_id: number;
+    quiz_id: number;
+    score: number | null;
+    started_at: string;
+    completed_at: string | null;
+    };
+
+export type QuizAttemptStart = {
+    attempt: QuizAttempt;
+    questions: QuizTakingQuestion[];
+    };
+
+export type QuizAnswerSubmit = {
+    question_id: number;
+    selected_option_id: number;
+    };
+
+export type QuizAnswer = {
+    id: number;
+    attempt_id: number;
+    question_id: number;
+    selected_option_id: number;
+    };
