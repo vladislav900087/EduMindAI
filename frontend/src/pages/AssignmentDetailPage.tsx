@@ -4,12 +4,14 @@ import {
     getAssignment,
     getMySubmissions,
     submitAssignment,
-    updateAssignmentSubmission
+    updateAssignmentSubmission,
+    getAssignmentSubmissions
     } from '../api/assignmentsApi';
 
 import { useAuth } from '../auth/AuthContext';
 import Button from '../components/ui/Button';
 import type { Assignment, AssignmentSubmission } from '../types/assignment';
+import SubmissionGrading from '../components/assignments/SubmissionGrading';
 
 
 function AssignmentDetailPage() {
@@ -19,6 +21,8 @@ function AssignmentDetailPage() {
 
     const [assignment, setAssignment] = useState<Assignment | null>(null);
     const [submission, setSubmission] = useState<AssignmentSubmission | null>(null);
+    const [submissions, setSubmissions] = useState<AssignmentSubmission[]>([]);
+    const canGrade = user?.role === 'teacher' || user?.role === 'admin';
     const [content, setContent] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
@@ -42,6 +46,11 @@ function AssignmentDetailPage() {
                 {
                     const assignmentData = await getAssignment(Number(assignmentId));
                     setAssignment(assignmentData);
+
+                    if (canGrade) {
+                        const items = await getAssignmentSubmissions(assignmentData.id);
+                        setSubmissions(items);
+                        }
 
                     if (isStudent) {
                         const submissions = await getMySubmissions();
@@ -67,7 +76,7 @@ function AssignmentDetailPage() {
 
         loadAssignment();
 
-        }, [assignmentId, isStudent]);
+        }, [assignmentId, isStudent, canGrade]);
 
     async function handleSubmit(event: FormEvent<HTMLFormElement>) {
 
@@ -204,6 +213,30 @@ function AssignmentDetailPage() {
                              </div>
                              )}
                     </form>
+
+                )}
+            {canGrade && (
+                <div className='mt-6'>
+                    <h2 className='text-lg font-semibold text-slate-900'>
+                        Submissions ({submissions.length})
+                    </h2>
+
+                    {submissions.length === 0 ? (
+                        <p className='mt-3 text-sm text-slate-600'>
+                            No submissions yet.
+                        </p>
+                        ) : (
+                            <div className='mt-4 space-y-4'>
+                                {submissions.map((item) => (
+                                    <SubmissionGrading
+                                        key={item.id}
+                                        submission={item}
+                                        onGraded={(updated) => setSubmissions((current) => current.map((entry) => entry.id === updated.id ? updated : entry))}
+                                     />
+                                    ))}
+                            </div>
+                            )}
+                </div>
                 )}
 
         </section>

@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import type { Assignment, AssignmentCreateRequest, AssignmentSubmission, AssignmentSubmitRequest } from '../types/assignment';
+import type { Assignment, AssignmentCreateRequest, AssignmentSubmission, AssignmentSubmitRequest, AssignmentGradeRequest } from '../types/assignment';
 
 
 export async function getCourseAssignments(courseId: number): Promise<Assignment[]> {
@@ -20,7 +20,7 @@ export async function createAssignment(courseId: number, data: AssignmentCreateR
 
 export async function getAssignment(assignmentId: number): Promise<Assignment> {
 
-    const response = await apiClient.get<Assignment>(`assignments/${assignmentId}`);
+    const response = await apiClient.get<Assignment>(`/assignments/${assignmentId}`);
 
     return response.data;
     }
@@ -48,3 +48,17 @@ export async function updateAssignmentSubmission(submissionId: number, data: Ass
     return response.data;
 
     }
+
+export async function getAssignmentSubmissions(
+    assignmentId: number,
+    ): Promise<AssignmentSubmission[]> {
+        const response = await apiClient.get<AssignmentSubmission[]>(`/assignments/${assignmentId}/submissions`,);
+        return response.data;
+        }
+
+export async function gradeAssignmentSubmission(submissionId: number, data: AssignmentGradeRequest): Promise<AssignmentSubmission> {
+     const response = await apiClient.put<AssignmentSubmission>(`/submissions/${submissionId}/grade`, data);
+
+     return response.data;
+     }
+
