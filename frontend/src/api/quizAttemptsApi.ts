@@ -24,3 +24,11 @@ export async function completeQuizAttempt(attemptId: number): Promise<QuizAttemp
 
     return response.data;
     }
+
+export async function getMyCompletedQuizAttempts(): Promise<QuizAttempt[]> {
+
+    const response = await apiClient.get<QuizAttempt[]>('/attempts/me');
+    return response.data;
+
+    }
+

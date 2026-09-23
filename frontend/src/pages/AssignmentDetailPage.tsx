@@ -27,6 +27,7 @@ function AssignmentDetailPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
+    const [submissionsError, setSubmissionsError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
 
     const isStudent = user?.role === 'student';
@@ -48,8 +49,12 @@ function AssignmentDetailPage() {
                     setAssignment(assignmentData);
 
                     if (canGrade) {
-                        const items = await getAssignmentSubmissions(assignmentData.id);
-                        setSubmissions(items);
+                        try {
+                            const items = await getAssignmentSubmissions(assignmentData.id);
+                            setSubmissions(items);
+                            } catch {
+                                setSubmissionsError('Could not load submissions.');
+                                }
                         }
 
                     if (isStudent) {
@@ -122,6 +127,7 @@ function AssignmentDetailPage() {
 
 
 
+
     return (
         <section>
             <Link
@@ -179,6 +185,8 @@ function AssignmentDetailPage() {
                              </p>
                              )}
 
+
+
                          {successMessage && (
                              <p className='mt-3 rounded-md bg-green-50 px-3 py-2 text-sm text-green-700'>
                                 {successMessage}
@@ -221,7 +229,12 @@ function AssignmentDetailPage() {
                         Submissions ({submissions.length})
                     </h2>
 
-                    {submissions.length === 0 ? (
+                    {submissionsError ? (
+                        <p className='mt-3 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700'>
+                            {submissionsError}
+                        </p>
+                        ) :
+                    submissions.length === 0 ? (
                         <p className='mt-3 text-sm text-slate-600'>
                             No submissions yet.
                         </p>
@@ -234,6 +247,7 @@ function AssignmentDetailPage() {
                                         onGraded={(updated) => setSubmissions((current) => current.map((entry) => entry.id === updated.id ? updated : entry))}
                                      />
                                     ))}
+
                             </div>
                             )}
                 </div>

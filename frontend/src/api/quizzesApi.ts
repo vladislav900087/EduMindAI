@@ -18,3 +18,9 @@ export async function createQuiz(courseId: number, data: QuizCreateRequest): Pro
     return response.data;
 
     }
+
+export async function getQuiz(quizId: number): Promise<Quiz> {
+
+    const response = await apiClient.get<Quiz>(`/quizzes/${quizId}`);
+    return response.data;
+    }
