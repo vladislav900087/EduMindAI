@@ -36,6 +36,10 @@ from backend.app.services.assignment_submission_service import AssignmentSubmiss
 from backend.app.models.user import User
 from backend.app.api.authorization import require_course_owner, get_current_user
 
+from backend.app.services.ai_quiz_generation_service import AIQuizGenerationService
+
+
+
 
 
 
@@ -115,6 +119,15 @@ def get_submission_repository(db: Session = Depends(get_db)) -> AssignmentSubmis
 
 def get_submission_service(submission_repository: AssignmentSubmissionRepository = Depends(get_submission_repository), enrollment_repository: CourseEnrollmentRepository = Depends(get_course_enrollment_repository), assignment_repository: AssignmentRepository = Depends(get_assignment_repository)):
     return AssignmentSubmissionService(submission_repository=submission_repository, enrollment_repository=enrollment_repository, assignment_repository=assignment_repository)
+
+def get_ai_quiz_generation_service() -> AIQuizGenerationService:
+    try:
+        return AIQuizGenerationService()
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(exc)
+        ) from exc
 
 
 
