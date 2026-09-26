@@ -23,7 +23,7 @@ def create_question(quiz_id: int, question_data: QuizQuestionCreate, quiz=Depend
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
-@router.post('/{quiz_id}/generate-questions', response_model=AIQuizGenerationResult, status_code=status.HTTP_201_CREATED)
+@router.post('/{quiz_id}/generate-questions', response_model=AIQuizGenerationResult, status_code=status.HTTP_200_OK)
 def generate_quiz_questions(
         quiz_id: int,
         generation_request: AIQuizGenerationRequest,
@@ -34,7 +34,7 @@ def generate_quiz_questions(
         return service.generate_questions(request=generation_request)
 
     except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(exc)) from exc
 
     
 

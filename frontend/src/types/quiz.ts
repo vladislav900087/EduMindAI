@@ -81,3 +81,18 @@ export type QuizAnswer = {
     question_id: number;
     selected_option_id: number;
     };
+
+export type AIQuizDifficulty = 'easy' | 'medium' | 'hard';
+
+export type AIQuizGenerationRequest = {
+    source_text: string;
+    question_count: number;
+    difficulty: AIQuizDifficulty;
+    };
+
+export type AIQuizGenerationResult = {
+    questions: QuizQuestionCreate[];
+    };
+
+
+

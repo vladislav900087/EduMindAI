@@ -69,7 +69,7 @@ def test_teacher_can_generate_question_preview(db_session, client):
         app.dependency_overrides.pop(get_ai_quiz_generation_service, None)
 
 
-    assert response.status_code == 201
+    assert response.status_code == 200
     assert len(response.json()['questions']) == 1
     assert len(response.json()['questions'][0]['options']) == 4
 
