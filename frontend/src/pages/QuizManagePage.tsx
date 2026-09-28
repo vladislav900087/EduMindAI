@@ -6,6 +6,8 @@ import QuizQuestionForm from '../components/quizzes/QuizQuestionForm';
 import FormCard from '../components/ui/FormCard';
 import type { QuizQuestion, QuizQuestionCreate } from '../types/quiz';
 
+import AIQuizGenerator from '../components/quizzes/AIQuizGenerator';
+
 
 function QuizManagePage() {
 
@@ -61,6 +63,13 @@ function QuizManagePage() {
                 </h1>
 
             </div>
+
+            {quizId && (
+                    <AIQuizGenerator
+                        quizId={Number(quizId)}
+                        onQuestionSaved={(question) => setQuestions((current) => [...current, question])}
+                     />
+                )}
 
             <div className='mt-6 grid gap-6 lg:grid-cols-[420px_1fr]'>
                 <FormCard title='Add question'>

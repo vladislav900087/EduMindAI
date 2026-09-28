@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import type { QuizQuestion, QuizQuestionCreate } from '../types/quiz';
+
 
 import type {
     AIQuizGenerationRequest,
