@@ -4,7 +4,11 @@ from backend.app.core.config import settings
 from backend.app.schemas.ai_quiz import (AIQuizGenerationRequest, AIQuizGenerationResult)
 
 class AIQuizGenerationService:
-    def __init__(self):
+    def __init__(self, client=None):
+        if client is not None:
+            self.client = client
+            return
+
         if not settings.gemini_api_key:
             raise ValueError('Gemini API key is not configured')
 
