@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from backend.app.api.dependencies import (get_quiz_for_management, get_quiz_questions_service, get_ai_quiz_generation_service)
+from backend.app.api.dependencies import (get_quiz_for_management, get_quiz_questions_service, get_ai_quiz_generation_service, get_question_for_management)
 from backend.app.schemas.quiz_question import (QuizQuestionCreate, QuizQuestionRead)
 from backend.app.schemas.ai_quiz import (
     AIQuizGenerationRequest,
@@ -39,7 +39,7 @@ def generate_quiz_questions(
     
 
 @router.get('/{quiz_id}/questions', status_code=status.HTTP_200_OK, response_model=list[QuizQuestionRead])
-def list_quiz_questions(quiz_id: int, service: QuizQuestionService = Depends(get_quiz_questions_service)):
+def list_quiz_questions(quiz_id: int, quiz=Depends(get_quiz_for_management), service: QuizQuestionService = Depends(get_quiz_questions_service)):
     try:
         return service.list_quiz_questions(quiz_id=quiz_id)
 
@@ -48,7 +48,7 @@ def list_quiz_questions(quiz_id: int, service: QuizQuestionService = Depends(get
 
 
 @question_router.get('/{question_id}', status_code=status.HTTP_200_OK, response_model=QuizQuestionRead)
-def get_question(question_id: int, service: QuizQuestionService = Depends(get_quiz_questions_service)):
+def get_question(question_id: int, question=Depends(get_question_for_management), service: QuizQuestionService = Depends(get_quiz_questions_service)):
     try:
         return service.get_question(question_id=question_id)
 

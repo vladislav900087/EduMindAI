@@ -38,6 +38,8 @@ from backend.app.api.authorization import require_course_owner, get_current_user
 
 from backend.app.services.ai_quiz_generation_service import AIQuizGenerationService
 
+from backend.app.repositories.quiz_question_repository import QuizQuestionRepository
+
 
 
 
@@ -220,6 +222,32 @@ def get_submission_for_management(submission_id: int, current_user: User = Depen
     require_course_owner(course, current_user)
 
     return submission
+
+def get_question_for_management(question_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+
+    question_repository = QuizQuestionRepository(db=db)
+    course_repository = CourseRepository(db=db)
+    quiz_repository = QuizRepository(db=db)
+
+    question = question_repository.get_by_id(question_id)
+
+    if question is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Question not found')
+
+    quiz = quiz_repository.get_by_id(question.quiz_id)
+
+    if quiz is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Quiz not found')
+
+    course = course_repository.get_by_id(quiz.course_id)
+
+    if course is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Course not found')
+
+    require_course_owner(course, current_user)
+
+    return question
+
 
 
 

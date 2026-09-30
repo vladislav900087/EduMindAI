@@ -63,6 +63,8 @@ function RegisterPage() {
                             type='text'
                             value={fullName}
                             onChange={(event) => setFullName(event.target.value)}
+                            minLength={1}
+                            maxLength={255}
                             required
                          />
 
@@ -89,7 +91,8 @@ function RegisterPage() {
                             value={password}
                             onChange={(event) => setPassword(event.target.value)}
                             required
-                            minLength={6}
+                            minLength={8}
+                            maxLength={128}
 
                         />
                     </label>

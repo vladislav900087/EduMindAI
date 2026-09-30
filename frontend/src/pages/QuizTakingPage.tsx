@@ -135,7 +135,7 @@ function QuizTakingPage() {
 
                 {isCompleted && (
                     <div className='mt-4 rounded-lg bg-green-50 p-4 text-green-700'>
-                        Quiz completed. Score: {attempt.score ?? 0}%
+                        Quiz completed. Score: {(attempt.score ?? 0).toFixed(0)}%
                     </div>
                     )}
             </div>
