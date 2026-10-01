@@ -200,6 +200,40 @@ def test_unauthenticated_user_cannot_create_question(client, db_session):
 
     assert response.status_code == 401
 
+def test_student_cannot_list_quiz_questions(db_session, client):
+    teacher, _ = create_test_user_and_get_token(db_session, client, UserRole.TEACHER)
+
+    _, quiz = create_test_course_and_quiz(db_session, teacher)
+
+    student, student_token = create_test_user_and_get_token(
+        db_session,
+        client,
+        UserRole.STUDENT
+    )
+
+    response = client.get(
+        f'/quizzes/{quiz.id}/questions',
+        headers={'Authorization': f'Bearer {student_token}'}
+    )
+
+    assert student.id is not None
+    assert response.status_code == 403
+
+def test_unauthenticated_user_cannot_list_questions(client, db_session):
+
+    teacher, _ = create_test_user_and_get_token(db_session, client, UserRole.TEACHER)
+    _, quiz = create_test_course_and_quiz(db_session, teacher)
+
+    response = client.get(
+        f'/quizzes/{quiz.id}/questions'
+    )
+
+    assert response.status_code == 401
+
+
+
+
+
 
 
 
