@@ -180,14 +180,15 @@ def test_get_question(db_session, client):
     assert create_response.status_code == 201
     question_id = create_response.json()['id']
 
-    retrieved_question_response = client.get(f'/questions/{question_id}')
+    retrieved_question_response = client.get(f'/questions/{question_id}', headers={'Authorization': f'Bearer {token}'})
 
     assert retrieved_question_response.status_code == 200
     assert retrieved_question_response.json()['id'] == question_id
 
-def test_get_missing_question(client):
+def test_get_missing_question(db_session, client):
 
-    response = client.get('questions/999999')
+    _, teacher_token = create_test_user_and_get_token(db_session, client, UserRole.TEACHER)
+    response = client.get('questions/999999', headers={'Authorization': f'Bearer {teacher_token}'})
 
     assert response.status_code == 404
 
