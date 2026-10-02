@@ -34,7 +34,7 @@ class CourseService:
         return course
 
     def list_courses(self) -> list[Course]:
-        return self.repository.list_all()
+        return self.repository.list_published()
 
     def list_teacher_courses(self, teacher_id: int) -> list[Course]:
         return self.repository.list_by_teacher(teacher_id)

@@ -155,6 +155,7 @@ def test_create_question_with_one_option(db_session, client):
 
 def test_list_quiz_questions(db_session, client):
     teacher, token = create_test_user_and_get_token(db_session, client, UserRole.TEACHER)
+    _, another_teacher_token = create_test_user_and_get_token(db_session, client, UserRole.TEACHER)
     course, quiz = create_test_course_and_quiz(db_session, teacher)
 
     options = create_test_options()
@@ -164,9 +165,12 @@ def test_list_quiz_questions(db_session, client):
     second_create_response = client.post(f'/quizzes/{quiz.id}/questions', headers={'Authorization': f'Bearer {token}'}, json={'question_text': f'Question Text {random.randint(0, 1000)}', 'options': options})
     assert second_create_response.status_code == 201
 
-    list_quiz_questions_response = client.get(f'/quizzes/{quiz.id}/questions')
-    print(list_quiz_questions_response.status_code)
-    print(list_quiz_questions_response.json())
+    list_quiz_questions_response = client.get(f'/quizzes/{quiz.id}/questions', headers={'Authorization': f'Bearer {token}'})
+    another_teacher_attempt = client.get(f'/quizzes/{quiz.id}/questions', headers={'Authorization': f'Bearer {another_teacher_token}'})
+    assert list_quiz_questions_response.status_code == 200
+    assert len(list_quiz_questions_response.json()) == 2
+    assert another_teacher_attempt.status_code == 403
+
 
 
 def test_get_question(db_session, client):

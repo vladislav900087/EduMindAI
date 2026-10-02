@@ -67,7 +67,7 @@ function CoursesPage() {
                 });
 
             setMyCourses((currentCourses) => [createdCourse, ...currentCourses]);
-            setCourses((currentCourses) => [createdCourse, ...currentCourses]);
+
 
 
             }
@@ -83,11 +83,22 @@ function CoursesPage() {
             ),
         );
 
-        setCourses((currentCourses) => currentCourses.map((course) =>
-            course.id === updatedCourse.id ? updatedCourse : course,
+        setCourses((currentCourses) => {
 
-            ),
-        );
+            const alreadyListed = currentCourses.some(
+                (course) => course.id === updatedCourse.id,
+                );
+
+            if (alreadyListed) {
+                return currentCourses.map((course) =>
+                    course.id === updatedCourse.id
+                        ? updatedCourse
+                        : course,
+                );
+            }
+
+            return [updatedCourse, ...currentCourses];
+            });
 
      }
 

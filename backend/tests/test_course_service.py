@@ -77,16 +77,31 @@ def test_list_courses(db_session):
     repository = CourseRepository(db_session)
     service = CourseService(repository)
 
-    course_1 = service.create_course(CourseCreate(title='English for beginners', description='Learn English step-by-step.'), teacher)
-    course_2 = service.create_course(CourseCreate(title='German for beginners', description='Learn German step-by-step.'), teacher)
+    draft_course = service.create_course(
+        CourseCreate(
+            title='Draft course',
+            description='Not publicly visible',
+        ),
+        teacher,
+    )
 
+    published_course = service.create_course(
+        CourseCreate(
+            title='Published course',
+            description='Publicly visible',
+        ),
+        teacher,
+    )
 
+    service.publish_course(published_course.id)
 
     courses = service.list_courses()
 
-    assert len(courses) == 2
-    assert course_1.title == 'English for beginners'
-    assert course_2.title == 'German for beginners'
+    assert len(courses) == 1
+    assert courses[0].id == published_course.id
+    assert courses[0].id != draft_course.id
+
+
 
 
 def test_list_courses_by_teacher(db_session):

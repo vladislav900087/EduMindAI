@@ -66,10 +66,15 @@ def test_list_courses(client, db_session):
 
     first_response = client.post('/courses', headers={'Authorization': f'Bearer {token}'}, json={'title': 'Python Basics', 'description': 'Learn Python fundamentals'})
     assert first_response.status_code == 201
+    first_course_id = first_response.json()['id']
 
     second_response = client.post('/courses', headers={'Authorization': f'Bearer {token}'}, json={'title': 'Advanced Python', 'description': 'Advanced Python concepts.'})
 
     assert second_response.status_code == 201
+
+    publish_response = client.post(f'/courses/{first_course_id}/publish', headers={'Authorization': f'Bearer {token}'})
+
+    assert publish_response.status_code == 200
 
     response = client.get('/courses')
 
@@ -77,9 +82,9 @@ def test_list_courses(client, db_session):
 
     data = response.json()
 
-    assert len(data) == 2
-    assert data[0]['title'] == 'Advanced Python'
-    assert data[1]['title'] == 'Python Basics'
+    assert len(data) == 1
+    assert data[0]['id'] == first_course_id
+    assert data[0]['status'] == CourseStatus.PUBLISHED
 
 
 def test_teacher_can_list_my_courses(client, db_session):

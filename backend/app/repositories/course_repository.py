@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from backend.app.models.course import Course
+from backend.app.models.course import Course, CourseStatus
 
 class CourseRepository:
     def __init__(self, db: Session):
@@ -33,5 +33,12 @@ class CourseRepository:
 
     def list_by_teacher(self, teacher_id: int) -> list[Course]:
         statement = select(Course).where(Course.teacher_id == teacher_id).order_by(Course.created_at.desc())
+
+        return list(self.db.scalars(statement))
+
+    def list_published(self) -> list[Course]:
+        statement = (select(Course)
+                     .where(Course.status == CourseStatus.PUBLISHED)
+                     .order_by(Course.created_at.desc()))
 
         return list(self.db.scalars(statement))
