@@ -7,7 +7,7 @@ from backend.app.schemas.course import CourseCreate, CourseRead
 from backend.app.schemas.lesson_progress import CourseProgressRead
 from backend.app.services.course_service import CourseService
 from backend.app.services.lesson_progress_service import LessonProgressService
-from backend.app.api.dependencies import get_course_service, get_course_for_management, get_lesson_progress_service
+from backend.app.api.dependencies import get_course_service, get_course_for_management, get_lesson_progress_service, get_course_for_view
 
 
 router = APIRouter(prefix='/courses', tags=['Courses'])
@@ -50,11 +50,9 @@ def get_course_progress(course_id: int, current_user: User = Depends(get_current
 
 
 @router.get('/{course_id}', response_model=CourseRead, status_code=status.HTTP_200_OK)
-def get_course(course_id: int, service: CourseService = Depends(get_course_service)):
-    try:
-        return service.get_course(course_id)
-    except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+def get_course(course_id: int, course=Depends(get_course_for_view)):
+
+    return course
 
 
 

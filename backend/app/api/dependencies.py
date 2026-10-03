@@ -2,6 +2,7 @@ from fastapi import Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from backend.app.db.session import get_db
+from backend.app.models import Course
 from backend.app.repositories.user_repository import UserRepository
 from backend.app.services.user_service import UserService
 from backend.app.repositories.course_repository import CourseRepository
@@ -34,6 +35,7 @@ from backend.app.repositories.assignment_submission_repository import Assignment
 from backend.app.services.assignment_submission_service import AssignmentSubmissionService
 
 from backend.app.models.user import User
+from backend.app.models.course import CourseStatus
 from backend.app.api.authorization import require_course_owner, get_current_user
 
 from backend.app.services.ai_quiz_generation_service import AIQuizGenerationService
@@ -247,6 +249,26 @@ def get_question_for_management(question_id: int, current_user: User = Depends(g
     require_course_owner(course, current_user)
 
     return question
+
+def get_course_for_view(course_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    repository = CourseRepository(db=db)
+    course = repository.get_by_id(course_id)
+
+    if course is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Course not found')
+
+    if course.status == CourseStatus.PUBLISHED:
+        return course
+
+    require_course_owner(course, current_user)
+
+
+    return course
+
+
+
+
+
 
 
 

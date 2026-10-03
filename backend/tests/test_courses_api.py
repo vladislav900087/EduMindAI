@@ -124,7 +124,7 @@ def test_get_course(client, db_session):
 
     course_id = create_response.json()['id']
 
-    response = client.get(f'/courses/{course_id}')
+    response = client.get(f'/courses/{course_id}', headers={'Authorization': f'Bearer {token}'})
 
     assert response.status_code == 200
 
@@ -135,8 +135,11 @@ def test_get_course(client, db_session):
     assert data['description'] == 'Course details test.'
 
 
-def test_get_missing_course(client):
-    response = client.get('/courses/999999')
+def test_get_missing_course(client, db_session):
+    teacher = create_test_user(db_session, 'teacher@example.com', UserRole.TEACHER)
+    token = get_access_token(client, teacher.email)
+
+    response = client.get('/courses/999999', headers={'Authorization': f'Bearer {token}'})
 
     assert response.status_code == 404
 
@@ -418,6 +421,75 @@ def test_unauthenticated_user_cannot_get_course_progress(client, db_session):
     unauthenticated_user_tries_to_get_course_progress_response = client.get('/courses/999999/progress')
 
     assert unauthenticated_user_tries_to_get_course_progress_response.status_code == 401
+
+
+def test_student_cannot_view_draft_courses(client, db_session):
+
+    teacher = create_test_user(db_session, 'teacher@example.com', role=UserRole.TEACHER)
+    student = create_test_user(db_session, 'student@example.com', role=UserRole.STUDENT)
+
+    student_token = get_access_token(client, student.email)
+    teacher_token = get_access_token(client, teacher.email)
+
+    create_response = client.post('/courses', headers={"Authorization": f'Bearer {teacher_token}'}, json={'title': 'A course', 'description': 'A course\'s description'})
+
+    assert create_response.status_code == 201
+    assert create_response.json()['status'] == CourseStatus.DRAFT
+    course_id = create_response.json()['id']
+
+    response = client.get(f'/courses/{course_id}', headers={'Authorization': f'Bearer {student_token}'})
+
+    assert response.status_code == 403
+
+def test_student_can_view_published_course(client, db_session):
+
+    teacher = create_test_user(db_session, 'teacher@example.com', role=UserRole.TEACHER)
+    student = create_test_user(db_session, 'student@example.com', role=UserRole.STUDENT)
+
+    teacher_token = get_access_token(client, teacher.email)
+    student_token = get_access_token(client, student.email)
+
+    create_response = client.post('/courses', headers={'Authorization': f'Bearer {teacher_token}'}, json={'title': 'Math course', 'description': 'Math courses\'s description'})
+
+    assert create_response.status_code == 201
+    assert create_response.json()['status'] == CourseStatus.DRAFT
+
+    course_id = create_response.json()['id']
+
+    publish_response = client.post(f'/courses/{course_id}/publish', headers={"Authorization": f'Bearer {teacher_token}'})
+
+    assert publish_response.status_code == 200
+    assert publish_response.json()['status'] == CourseStatus.PUBLISHED
+
+    get_response = client.get(f'/courses/{course_id}', headers={'Authorization': f'Bearer {student_token}'})
+
+    assert get_response.status_code == 200
+    assert get_response.json()['status'] == CourseStatus.PUBLISHED
+    assert get_response.json()['id'] == course_id
+
+
+def test_unauthenticated_user_cannot_view_course(client, db_session):
+
+    teacher = create_test_user(db_session, 'protected_course_owner@example.com', role=UserRole.TEACHER)
+
+    token = get_access_token(client, teacher.email)
+
+    create_response = client.post('/courses', headers={'Authorization': f'Bearer {token}'}, json={"title": 'English C2 Course', 'description': 'English C2 Course\'s description'})
+
+    assert create_response.status_code == 201
+    assert create_response.json()['status'] == CourseStatus.DRAFT
+    course_id = create_response.json()['id']
+
+    publish_response = client.post(f'/courses/{course_id}/publish', headers={'Authorization': f'Bearer {token}'})
+
+    assert publish_response.status_code == 200
+    assert publish_response.json()['status'] == CourseStatus.PUBLISHED
+
+    get_response = client.get(f'/courses/{course_id}')
+
+    assert get_response.status_code == 401
+
+
 
 
 
