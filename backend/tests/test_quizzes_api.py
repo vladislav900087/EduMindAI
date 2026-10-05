@@ -133,14 +133,16 @@ def test_get_quiz(db_session, client):
 
     quiz_id = create_course_quiz_response.json()['id']
 
-    retrieve_course_quiz_response = client.get(f'/quizzes/{quiz_id}')
+    retrieve_course_quiz_response = client.get(f'/quizzes/{quiz_id}', headers={'Authorization': f'Bearer {teacher_token}'})
 
     assert retrieve_course_quiz_response.status_code == 200
     assert retrieve_course_quiz_response.json()['id'] == quiz_id
     assert retrieve_course_quiz_response.json()['course_id'] == course.id
 
 def test_get_missing_quiz(db_session, client):
-    response = client.get('/quizzes/999999')
+    teacher = create_test_user(db_session, role=UserRole.TEACHER)
+    teacher_token = get_token(client, teacher.email)
+    response = client.get('/quizzes/999999', headers={"Authorization": f'Bearer {teacher_token}'})
 
     assert response.status_code == 404
 

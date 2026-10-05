@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from backend.app.api.dependencies import get_current_user, get_assignment_service, get_assignment_for_management, get_course_for_management, get_submission_service, get_submission_for_management, get_user_repository
+from backend.app.api.dependencies import get_current_user, get_assignment_service, get_assignment_for_management, get_course_for_management, get_submission_service, get_submission_for_management, get_assignment_for_view, get_course_for_content_access
 from backend.app.schemas.assignment import AssignmentCreate, AssignmentRead
 from backend.app.models.user import User, UserRole
 from backend.app.services.assignment_service import AssignmentService
@@ -90,21 +90,17 @@ def update_assignment(assignment_id: int, assignment_data: AssignmentCreate, ass
 
 
 @router.get('/courses/{course_id}', response_model=list[AssignmentRead], status_code=status.HTTP_200_OK)
-def list_assignments_by_course(course_id: int, current_user: User = Depends(get_current_user), service: AssignmentService = Depends(get_assignment_service)):
+def list_assignments_by_course(course_id: int, course=Depends(get_course_for_content_access), current_user: User = Depends(get_current_user), service: AssignmentService = Depends(get_assignment_service)):
 
-    try:
-        return service.list_course_assignments(course_id=course_id)
 
-    except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    return service.list_course_assignments(course_id=course_id)
+
 
 
 @router.get('/{assignment_id}', response_model=AssignmentRead, status_code=status.HTTP_200_OK)
-def get_assignment(assignment_id: int, service: AssignmentService = Depends(get_assignment_service)):
-    try:
-        return service.get_assignment(assignment_id=assignment_id)
-    except ValueError as exc:
-        raise handle_service_error(exc) from exc
+def get_assignment(assignment_id: int, assignment=Depends(get_assignment_for_view)):
+
+    return assignment
 
 @router.get('/{assignment_id}/submissions', response_model=list[AssignmentSubmissionRead], status_code=status.HTTP_200_OK)
 def list_students_submissions(assignment_id: int, assignment=Depends(get_assignment_for_management), current_user: User = Depends(get_current_user), service: AssignmentSubmissionService = Depends(get_submission_service)):

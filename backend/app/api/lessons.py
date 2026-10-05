@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from backend.app.api.dependencies import get_lesson_service, get_course_for_management, get_lesson_for_management, get_lesson_progress_service
+from backend.app.api.dependencies import get_lesson_service, get_course_for_management, get_lesson_for_management, get_lesson_progress_service, get_lesson_for_view, get_course_for_content_access
 from backend.app.api.security import get_current_user
 from backend.app.models.user import User, UserRole
 from backend.app.schemas.lesson_progress import LessonProgressRead
@@ -37,18 +37,14 @@ def complete_lesson(lesson_id: int, current_user: User = Depends(get_current_use
 
 
 @course_router.get('/{course_id}/lessons', response_model=list[LessonRead], status_code=status.HTTP_200_OK)
-def list_course_lessons(course_id: int, service: LessonService = Depends(get_lesson_service)):
-    try:
-        return service.list_course_lessons(course_id=course_id)
-    except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+def list_course_lessons(course_id: int, course=Depends(get_course_for_content_access), service: LessonService = Depends(get_lesson_service)):
+
+    return service.list_course_lessons(course_id=course_id)
+
 
 @router.get('/{lesson_id}', response_model=LessonRead, status_code=status.HTTP_200_OK)
-def get_lesson(lesson_id: int, service: LessonService = Depends(get_lesson_service)):
-    try:
-        return service.get_lesson(lesson_id=lesson_id)
-    except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+def get_lesson(lesson_id: int, lesson = Depends(get_lesson_for_view)):
+    return lesson
 
 @router.get('/progress/me', response_model=list[LessonProgressRead], status_code=status.HTTP_200_OK)
 def get_my_progress(current_user: User = Depends(get_current_user), service: LessonProgressService = Depends(get_lesson_progress_service)):

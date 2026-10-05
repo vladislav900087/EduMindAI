@@ -34,7 +34,7 @@ from backend.app.services.assignment_service import AssignmentService
 from backend.app.repositories.assignment_submission_repository import AssignmentSubmissionRepository
 from backend.app.services.assignment_submission_service import AssignmentSubmissionService
 
-from backend.app.models.user import User
+from backend.app.models.user import User, UserRole
 from backend.app.models.course import CourseStatus
 from backend.app.api.authorization import require_course_owner, get_current_user
 
@@ -264,6 +264,123 @@ def get_course_for_view(course_id: int, current_user: User = Depends(get_current
 
 
     return course
+
+
+def require_course_content_access(course: Course, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> None:
+
+    if current_user.role == UserRole.ADMIN:
+        return
+
+    if (
+        current_user.role == UserRole.TEACHER and
+        course.teacher_id == current_user.id
+    ):
+        return
+
+    if (
+        current_user.role == UserRole.STUDENT
+        and course.status == CourseStatus.PUBLISHED
+    ):
+
+            return
+
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail='You do not have access to this course content',
+    )
+
+def get_course_for_content_access(
+        course_id: int,
+        current_user: User = Depends(get_current_user),
+        db: Session = Depends(get_db)
+):
+    course_repository = CourseRepository(db=db)
+    course = course_repository.get_by_id(course_id)
+
+    if course is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Course not found')
+
+    require_course_content_access(course, current_user, db)
+
+    return course
+
+
+def get_lesson_for_view(
+        lesson_id: int,
+        current_user: User = Depends(get_current_user),
+        db: Session = Depends(get_db),
+):
+    lesson_repository = LessonRepository(db=db)
+    course_repository = CourseRepository(db=db)
+
+    lesson = lesson_repository.get_by_id(lesson_id)
+
+    if lesson is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Lesson not found',
+        )
+
+    course = course_repository.get_by_id(lesson.course_id)
+
+    if course is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Course not found')
+
+    require_course_content_access(course, current_user, db)
+
+    return lesson
+
+def get_quiz_for_view(
+        quiz_id: int,
+        current_user: User = Depends(get_current_user),
+        db: Session = Depends(get_db),
+):
+    quiz_repository = QuizRepository(db=db)
+    course_repository = CourseRepository(db=db)
+
+    quiz = quiz_repository.get_by_id(quiz_id)
+
+    if quiz is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Quiz not found')
+
+    course = course_repository.get_by_id(quiz.course_id)
+
+    if course is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Course not found')
+
+    require_course_content_access(course, current_user, db)
+
+    return quiz
+
+def get_assignment_for_view(
+        assignment_id: int,
+        current_user: User = Depends(get_current_user),
+        db: Session = Depends(get_db),
+):
+    assignment_repository = AssignmentRepository(db=db)
+    course_repository = CourseRepository(db=db)
+
+    assignment = assignment_repository.get_by_id(assignment_id)
+
+    if assignment is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Assignment not found')
+
+    course = course_repository.get_by_id(assignment.course_id)
+
+    if course is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Course not found')
+
+    require_course_content_access(course, current_user, db)
+
+    return assignment
+
+
+
+
+
+
+
+
 
 
 

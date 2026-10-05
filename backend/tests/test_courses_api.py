@@ -489,6 +489,47 @@ def test_unauthenticated_user_cannot_view_course(client, db_session):
 
     assert get_response.status_code == 401
 
+def test_another_teacher_cannot_view_draft_course(client, db_session):
+    teacher_one = create_test_user(db_session, 'protected_course_owner@example.com', role=UserRole.TEACHER)
+    teacher_two = create_test_user(db_session, 'another_teacher_that_does_not_own_draft_course@example.com', role=UserRole.TEACHER)
+
+    course_owner_token = get_access_token(client, teacher_one.email)
+    another_teacher_token = get_access_token(client, teacher_two.email)
+
+    create_response = client.post('/courses', headers={'Authorization': f'Bearer {course_owner_token}'}, json={'title': 'Python Course', 'description': 'Object-Oriented Programming introduction'})
+
+    assert create_response.status_code == 201
+    assert create_response.json()['status'] == CourseStatus.DRAFT
+
+    course_id = create_response.json()['id']
+
+    get_response = client.get(f'/courses/{course_id}', headers={"Authorization": f'Bearer {another_teacher_token}'})
+
+    assert get_response.status_code == 403
+
+def test_admin_can_view_teachers_draft_course(client, db_session):
+
+    teacher = create_test_user(db_session, 'protected_course_owner@example.com', role=UserRole.TEACHER)
+    admin = create_test_user(db_session, 'admin_is_allowed_to_view_teachers_draft_courses@example.com', role=UserRole.ADMIN)
+
+    teacher_token = get_access_token(client, teacher.email)
+    admin_token = get_access_token(client, admin.email)
+
+    create_response = client.post('/courses', headers={"Authorization": f'Bearer {teacher_token}'}, json={'title': 'A draft course', 'description': 'An admin can view this draft course'})
+
+    assert create_response.status_code == 201
+    assert create_response.json()['status'] == CourseStatus.DRAFT
+
+    course_id = create_response.json()['id']
+
+    get_response = client.get(f'/courses/{course_id}', headers={'Authorization': f'Bearer {admin_token}'})
+
+    assert get_response.status_code == 200
+
+    assert get_response.json()['status'] == CourseStatus.DRAFT
+    assert get_response.json()['id'] == course_id
+
+
 
 
 

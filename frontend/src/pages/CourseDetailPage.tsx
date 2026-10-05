@@ -65,6 +65,8 @@ function CourseDetailPage() {
 
     // useful constants and helpers
     const isStudent = user?.role === 'student';
+    const isTeacher = user?.role === 'teacher';
+    const isAdmin = user?.role === 'admin';
     const isEnrolled = enrollments.some(
             (enrollment) => enrollment.course_id === course?.id
         );
@@ -276,7 +278,7 @@ function CourseDetailPage() {
 
         }
 
-    if (errorMessage || !course) {
+if (errorMessage || !course) {
 
         return (
             <section className='rounded-lg border border-red-200 bg-red-50 p-6 text-sm text-red-700'>
@@ -427,6 +429,9 @@ function CourseDetailPage() {
                     </div>
                 )}
 
+
+        {(isTeacher || isAdmin || isStudent && isEnrolled) && (
+
             <div className='mt-6 grid gap-4 lg:grid-cols-3'>
                 <ContentPanel title='Lessons' emptyText='No lessons yet.'>
                     {lessons.map((lesson) => {
@@ -464,6 +469,7 @@ function CourseDetailPage() {
 
                                 </div>
                             </div>
+
 
                             );
 
@@ -507,9 +513,19 @@ function CourseDetailPage() {
                         ))}
                 </ContentPanel>
             </div>
+
+
+            )
+        }
+
+
         </section>
         );
     }
+
+
+
+
 
 type ContentPanelProps = {
 

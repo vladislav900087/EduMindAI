@@ -2,6 +2,7 @@
 
 from backend.app.models.user import User, UserRole
 from backend.app.core.security import hash_password
+from backend.app.models.course import CourseStatus
 
 def create_test_user(db_session, email: str, role: UserRole) -> User:
     user = User(email=email, role=role, hashed_password=hash_password('StrongPassword123!'), full_name='Test User')
@@ -24,9 +25,19 @@ def get_access_token(client, email: str) -> str:
 def create_course(client, token: str) -> int:
     response = client.post('/courses', headers={'Authorization': f'Bearer {token}'}, json={'title': 'Test Course', 'description': 'Course for lesson API tests.'})
 
+
     assert response.status_code == 201
 
     return response.json()['id']
+def publish_course(client, token: str, course_id: int):
+    response = client.post(
+        f'/courses/{course_id}/publish',
+        headers={'Authorization': f'Bearer {token}'},
+    )
+
+    assert response.status_code == 200
+
+    return response.json()['status']
 
 def test_teacher_can_create_lesson(client, db_session):
     teacher = create_test_user(db_session, 'lesson_teacher@example.com', UserRole.TEACHER)
@@ -84,7 +95,7 @@ def test_list_course_lessons(client, db_session):
     second_response = client.post(f'/courses/{course_id}/lessons', headers={'Authorization': f'Bearer {token}'}, json={'title': 'Lesson Two', 'content': 'Second Lesson.'})
     assert second_response.status_code == 201
 
-    response = client.get(f'/courses/{course_id}/lessons')
+    response = client.get(f'/courses/{course_id}/lessons', headers={"Authorization": f'Bearer {token}'})
 
     assert response.status_code == 200
 
@@ -108,7 +119,7 @@ def test_get_lesson(client, db_session):
     assert create_response.status_code == 201
     lesson_id = create_response.json()['id']
 
-    response = client.get(f'/lessons/{lesson_id}')
+    response = client.get(f'/lessons/{lesson_id}', headers={"Authorization": f'Bearer {token}'})
 
     assert response.status_code == 200
 
@@ -120,13 +131,17 @@ def test_get_lesson(client, db_session):
     assert data['course_id'] == course_id
 
 
-def test_get_missing_lesson(client):
-    response = client.get('/lessons/999999')
+def test_get_missing_lesson(client, db_session):
+    teacher = create_test_user(db_session, 'random_teacher@example.com', UserRole.TEACHER)
+    token = get_access_token(client, teacher.email)
+    response = client.get('/lessons/999999', headers={'Authorization': f'Bearer {token}'})
 
     assert response.status_code == 404
 
-def test_list_lessons_for_missing_course(client):
-    response = client.get('/courses/999999/lessons')
+def test_list_lessons_for_missing_course(client, db_session):
+    teacher = create_test_user(db_session, 'a_good_teacher@example.com', UserRole.TEACHER)
+    token = get_access_token(client, teacher.email)
+    response = client.get('/courses/999999/lessons', headers={"Authorization": f'Bearer {token}'})
 
     assert response.status_code == 404
 
@@ -146,7 +161,7 @@ def test_teacher_can_delete_own_lesson(client, db_session):
 
     assert response.status_code == 204
 
-    get_response = client.get(f'/lessons/{lesson_id}')
+    get_response = client.get(f'/lessons/{lesson_id}', headers={'Authorization': f'Bearer {token}'})
 
     assert get_response.status_code == 404
 
@@ -208,7 +223,7 @@ def test_admin_can_delete_lesson(client, db_session):
 
     assert response.status_code == 204
 
-    get_response = client.get(f'/lessons/{lesson_id}')
+    get_response = client.get(f'/lessons/{lesson_id}', headers={"Authorization": f'Bearer {admin_token}'})
 
     assert get_response.status_code == 404
 
@@ -528,6 +543,118 @@ def test_unauthenticated_user_cannot_get_my_progress(client):
 
     unauthenticated_users_failed_attempt_to_get_students_lesson_progress_response = client.get('lessons/progress/me')
     assert unauthenticated_users_failed_attempt_to_get_students_lesson_progress_response.status_code == 401
+
+
+def test_teacher_can_get_own_lesson(client, db_session):
+
+    teacher =  create_test_user(db_session, 'course_and_lesson_owner@example.com', role=UserRole.TEACHER)
+
+    teacher_token = get_access_token(client, teacher.email)
+
+    course_id = create_course(client, teacher_token)
+
+    create_response = client.post(f'/courses/{course_id}/lessons', headers={'Authorization': f'Bearer {teacher_token}'}, json={'title': 'A lesson', 'content': 'A lesson\'s content'})
+
+    assert create_response.status_code == 201
+    lesson_id = create_response.json()['id']
+
+    get_response = client.get(f'/lessons/{lesson_id}', headers={"Authorization": f'Bearer {teacher_token}'})
+
+    assert get_response.status_code == 200
+
+
+def test_admin_can_get_teachers_lesson(client, db_session):
+    teacher = create_test_user(db_session, 'course_and_lesson_owner@example.com', role=UserRole.TEACHER)
+    admin = create_test_user(db_session, 'admin_can_access_teachers_courses_and_lessons@example.com', role=UserRole.ADMIN)
+
+    teacher_token = get_access_token(client, teacher.email)
+    admin_token = get_access_token(client, admin.email)
+
+    course_id = create_course(client, teacher_token)
+
+    create_response = client.post(f'/courses/{course_id}/lessons', headers={'Authorization': f'Bearer {teacher_token}'}, json={'title': 'An accessible-for-admin lesson', 'content': 'An accessible-for-admin lesson\'s content'})
+
+    assert create_response.status_code == 201
+
+    lesson_id = create_response.json()['id']
+
+    get_response = client.get(f'/lessons/{lesson_id}', headers={'Authorization': f'Bearer {admin_token}'})
+
+    assert get_response.status_code == 200
+
+def test_enrolled_student_can_get_teachers_lesson(client, db_session):
+
+    teacher = create_test_user(db_session, '_a_lesson_and_course_creator_and_owner_that_creates_lessons_for_only_enrolled_students@example.com', role=UserRole.TEACHER)
+    student = create_test_user(db_session, 'enrolled_student_that_can_access_course_content@example.com', role=UserRole.STUDENT)
+
+    teacher_token = get_access_token(client, teacher.email)
+    student_token = get_access_token(client, student.email)
+
+    course_id = create_course(client, teacher_token)
+    course_status = publish_course(client, teacher_token, course_id)
+
+    assert course_status == CourseStatus.PUBLISHED
+
+    create_response = client.post(f'/courses/{course_id}/lessons', headers={"Authorization": f'Bearer {teacher_token}'}, json={'title': 'An accessible-for-only-enrolled-students lessons', 'content': 'An accessible for-only-enrolled-students lesson\'s content'})
+
+    assert create_response.status_code == 201
+
+    lesson_id = create_response.json()['id']
+
+    enrollment_response = client.post(f'/enrollments/courses/{course_id}/enroll', headers={'Authorization': f'Bearer {student_token}'})
+
+    assert enrollment_response.status_code == 201
+
+    get_response = client.get(f'/lessons/{lesson_id}', headers={"Authorization": f'Bearer {student_token}'})
+
+    assert get_response.status_code == 200
+
+def test_unenrolled_student_cannot_get_teachers_lesson(client, db_session):
+
+    teacher = create_test_user(db_session, email='teacher_creates_unaccessible_course_and_its_lesson_for_unenrolled_students@example.com', role=UserRole.TEACHER)
+    student = create_test_user(db_session, email='a_student_that_cannot_access_course_content_because_he_or_she_is_unenrolled@example.com', role=UserRole.STUDENT)
+
+    teacher_token = get_access_token(client, teacher.email)
+    student_token = get_access_token(client, student.email)
+
+    course_id = create_course(client, teacher_token)
+    course_status = publish_course(client, teacher_token, course_id)
+
+    assert course_status == CourseStatus.PUBLISHED
+
+    create_response = client.post(f'/courses/{course_id}/lessons', headers={'Authorization': f'Bearer {teacher_token}'}, json={'title': "An unaccessible-for-unenrolled-to-course-students lesson", 'content': 'An unaccessible-for-unenrolled-to-course-students lesson\'s content'})
+
+    assert create_response.status_code == 201
+
+    lesson_id = create_response.json()['id']
+
+    get_response = client.get(f'/lessons/{lesson_id}', headers={"Authorization": f'Bearer {student_token}'})
+
+    assert get_response.status_code == 403
+
+def test_another_teacher_cannot_get_teachers_lesson(client, db_session):
+
+    course_and_lesson_owner = create_test_user(db_session, email='course_and_lesson_owner@example.com', role=UserRole.TEACHER)
+    another_teacher = create_test_user(db_session, email='another_teacher_that_does_not_own_course_and_lesson_and_has_no_access_to_them_respectively@example.com', role=UserRole.TEACHER)
+
+    owner_token = get_access_token(client, course_and_lesson_owner.email)
+    another_teacher_token = get_access_token(client, another_teacher.email)
+
+    course_id = create_course(client, owner_token)
+    course_status = publish_course(client, owner_token, course_id)
+
+    assert course_status == CourseStatus.PUBLISHED
+
+    create_response = client.post(f'/courses/{course_id}/lessons', headers={"Authorization": f'Bearer {owner_token}'}, json={"title": 'An unaccessible-for-non-owners lesson', 'content': 'An unaccessible-for-non-owners lesson\'s content'})
+
+    assert create_response.status_code == 201
+
+    lesson_id = create_response.json()['id']
+
+    get_response = client.get(f'/lessons/{lesson_id}', headers={'Authorization': f'Bearer {another_teacher_token}'})
+
+    assert get_response.status_code == 403
+
 
 
 

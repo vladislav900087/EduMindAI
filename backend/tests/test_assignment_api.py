@@ -45,6 +45,13 @@ def test_student_can_list_course_assignments(db_session, client):
     create_response = client.post(f'/assignments/courses/{course.id}', headers={'Authorization': f'Bearer {teacher_token}'}, json={'title': f'Test Assignment {uid}'})
     assert create_response.status_code == 201
 
+    enrollment_response = client.post(
+        f'/enrollments/courses/{course.id}/enroll',
+        headers={'Authorization': f'Bearer {student_token}'},
+    )
+
+    assert enrollment_response.status_code == 201
+
     retrieve_response = client.get(f'/assignments/courses/{course.id}', headers={'Authorization': f'Bearer {student_token}'})
 
     assert retrieve_response.status_code == 200
@@ -69,13 +76,15 @@ def test_get_assignment(db_session, client):
 
     assert assignment_id
 
-    get_response = client.get(f'/assignments/{assignment_id}')
+    get_response = client.get(f'/assignments/{assignment_id}', headers={'Authorization': f'Bearer {teacher_token}'})
 
     assert get_response.status_code == 200
 
 def test_get_missing_assignment(db_session, client):
 
-    response = client.get('/assignments/999999')
+    teacher, _, _ = create_test_environment(db_session)
+    token = login_user(client, teacher.email)
+    response = client.get('/assignments/999999', headers={"Authorization": f'Bearer {token}'})
 
     assert response.status_code == 404
 
