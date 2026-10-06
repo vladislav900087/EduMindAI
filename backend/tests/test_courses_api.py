@@ -404,7 +404,7 @@ def test_student_cannot_get_course_progress_for_missing_course(client, db_sessio
 
     student_tries_to_get_progress_for_missing_course_response = client.get('/courses/999999/progress', headers={'Authorization': f'Bearer {student_token}'})
 
-    assert student_tries_to_get_progress_for_missing_course_response.status_code == 400
+    assert student_tries_to_get_progress_for_missing_course_response.status_code == 404
 
 
 def test_teacher_cannot_get_course_progress(client, db_session):
@@ -412,7 +412,12 @@ def test_teacher_cannot_get_course_progress(client, db_session):
 
     teacher_token = get_access_token(client, teacher.email)
 
-    teacher_tries_to_get_course_progress_response = client.get('/courses/999999/progress', headers={'Authorization': f'Bearer {teacher_token}'})
+    create_response = client.post('/courses', headers={'Authorization': f'Bearer {teacher_token}'}, json={'title': 'Course title', 'description': 'Course description'})
+
+    assert create_response.status_code == 201
+    course_id = create_response.json()['id']
+
+    teacher_tries_to_get_course_progress_response = client.get(f'/courses/{course_id}/progress', headers={'Authorization': f'Bearer {teacher_token}'})
     assert teacher_tries_to_get_course_progress_response.status_code == 403
 
 

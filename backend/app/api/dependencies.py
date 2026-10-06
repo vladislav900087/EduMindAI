@@ -266,7 +266,7 @@ def get_course_for_view(course_id: int, current_user: User = Depends(get_current
     return course
 
 
-def require_course_content_access(course: Course, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> None:
+def require_course_content_access(course: Course, current_user: User, db: Session) -> None:
 
     if current_user.role == UserRole.ADMIN:
         return
@@ -281,7 +281,13 @@ def require_course_content_access(course: Course, current_user: User = Depends(g
         current_user.role == UserRole.STUDENT
         and course.status == CourseStatus.PUBLISHED
     ):
+        enrollment_repository = CourseEnrollmentRepository(db=db)
+        enrollment = enrollment_repository.get_by_student_and_course(
+            student_id=current_user.id,
+            course_id=course.id
+        )
 
+        if enrollment is not None:
             return
 
     raise HTTPException(
@@ -292,7 +298,7 @@ def require_course_content_access(course: Course, current_user: User = Depends(g
 def get_course_for_content_access(
         course_id: int,
         current_user: User = Depends(get_current_user),
-        db: Session = Depends(get_db)
+        db: Session = Depends(get_db),
 ):
     course_repository = CourseRepository(db=db)
     course = course_repository.get_by_id(course_id)

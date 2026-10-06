@@ -71,6 +71,8 @@ function CourseDetailPage() {
             (enrollment) => enrollment.course_id === course?.id
         );
 
+    const [hasEnrolled, setHasEnrolled] = useState(false);
+
     const completedLessonIds = new Set(
             lessonProgress.map((progress) => progress.lesson_id),
         );
@@ -92,29 +94,65 @@ function CourseDetailPage() {
 
             const id = Number(courseId);
 
+
+
             try {
 
 
 
-                const [courseData, lessonData, quizData, assignmentData] = await Promise.all([getCourse(id), getCourseLessons(id), getCourseQuizzes(id), getCourseAssignments(id)]);
+            const courseData = await getCourse(id);
+            setCourse(courseData);
 
-                setCourse(courseData);
+            if (user?.role === 'student') {
+                const enrollmentData = await getMyEnrollments();
+                setEnrollments(enrollmentData);
+
+                const enrolled = enrollmentData.some(
+                    (enrollment) => enrollment.course_id === id,
+                    );
+
+                if (!enrolled) {
+                    return;
+                    }
+
+                const [
+                lessonData,
+                quizData,
+                assignmentData,
+                lessonProgressData,
+                courseProgressData
+                ] = await Promise.all([
+                    getCourseLessons(id),
+                    getCourseQuizzes(id),
+                    getCourseAssignments(id),
+                    getMyProgress(),
+                    getCourseProgress(id),
+                    ]);
+
                 setLessons(lessonData);
                 setQuizzes(quizData);
                 setAssignments(assignmentData);
+                setLessonProgress(lessonProgressData);
+                setCourseProgress(courseProgressData);
 
-                if (isStudent) {
+                return;
 
-                    const [enrollmentData, lessonProgressData, courseProgressData] = await Promise.all([getMyEnrollments(), getMyProgress(), getCourseProgress(id)]);
+                }
 
-                    setEnrollments(enrollmentData);
-                    setLessonProgress(lessonProgressData);
-                    setCourseProgress(courseProgressData);
+            const ownsCourse = user?.role === 'admin' || (user?.role === 'teacher' && courseData.teacher_id === user.id);
 
-                    }
+            if (ownsCourse) {
 
+                   const [lessonData, quizData, assignmentData] = await Promise.all([
+                       getCourseLessons(id),
+                       getCourseQuizzes(id),
+                       getCourseAssignments(id),
+                       ]);
 
-
+                   setLessons(lessonData);
+                   setQuizzes(quizData);
+                   setAssignments(assignmentData);
+                }
 
                 } catch {
 
@@ -129,7 +167,7 @@ function CourseDetailPage() {
             }
 
         loadCourseData();
-        }, [courseId, user?.role]);
+        }, [courseId, user?.role, hasEnrolled]);
 
 
     async function handleCreateLesson(event: FormEvent<HTMLFormElement>) {
@@ -232,6 +270,9 @@ function CourseDetailPage() {
         try {
             const enrollment = await enrollInCourse(course.id);
             setEnrollments((current) => [enrollment, ...current]);
+            setHasEnrolled(true);
+
+
 
             const progress = await getCourseProgress(course.id);
             setCourseProgress(progress);
@@ -239,6 +280,7 @@ function CourseDetailPage() {
             } catch {
 
                 setActionError('Could not enroll in this course.');
+                setHasEnrolled(false);
 
                 }
 
