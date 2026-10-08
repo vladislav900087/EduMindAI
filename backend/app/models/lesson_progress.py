@@ -13,7 +13,7 @@ class LessonProgress(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     student_id: Mapped[int] = mapped_column(ForeignKey('users.id'), nullable=False)
-    lesson_id: Mapped[int] = mapped_column(ForeignKey('lessons.id'), nullable=False)
+    lesson_id: Mapped[int] = mapped_column(ForeignKey('lessons.id', ondelete='CASCADE'), nullable=False)
     completed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     student = relationship('User')

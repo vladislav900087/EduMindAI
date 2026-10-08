@@ -65,19 +65,22 @@ function CourseDetailPage() {
 
     // useful constants and helpers
     const isStudent = user?.role === 'student';
-    const isTeacher = user?.role === 'teacher';
-    const isAdmin = user?.role === 'admin';
+
     const isEnrolled = enrollments.some(
             (enrollment) => enrollment.course_id === course?.id
         );
 
-    const [hasEnrolled, setHasEnrolled] = useState(false);
+
 
     const completedLessonIds = new Set(
             lessonProgress.map((progress) => progress.lesson_id),
         );
 
-    const canManageCourse = user?.role === 'teacher' || user?.role === 'admin';
+    const canManageCourse = user?.role === 'admin' || (
+            user?.role === 'teacher' &&
+            course !== null &&
+            course.teacher_id === user.id
+        );
 
     useEffect(() => {
 
@@ -167,7 +170,7 @@ function CourseDetailPage() {
             }
 
         loadCourseData();
-        }, [courseId, user?.role, hasEnrolled]);
+        }, [courseId, user?.role]);
 
 
     async function handleCreateLesson(event: FormEvent<HTMLFormElement>) {
@@ -269,18 +272,32 @@ function CourseDetailPage() {
 
         try {
             const enrollment = await enrollInCourse(course.id);
+
+            const [
+                lessonData,
+                quizData,
+                assignmentData,
+                lessonProgressData,
+                progressData
+                ] = await Promise.all([
+                    getCourseLessons(course.id),
+                    getCourseQuizzes(course.id),
+                    getCourseAssignments(course.id),
+                    getMyProgress(),
+                    getCourseProgress(course.id),
+                    ]);
+
             setEnrollments((current) => [enrollment, ...current]);
-            setHasEnrolled(true);
-
-
-
-            const progress = await getCourseProgress(course.id);
-            setCourseProgress(progress);
+            setLessons(lessonData);
+            setQuizzes(quizData);
+            setAssignments(assignmentData);
+            setLessonProgress(lessonProgressData);
+            setCourseProgress(progressData);
 
             } catch {
 
                 setActionError('Could not enroll in this course.');
-                setHasEnrolled(false);
+
 
                 }
 
@@ -472,7 +489,7 @@ if (errorMessage || !course) {
                 )}
 
 
-        {(isTeacher || isAdmin || isStudent && isEnrolled) && (
+        {(canManageCourse || (isStudent && isEnrolled)) && (
 
             <div className='mt-6 grid gap-4 lg:grid-cols-3'>
                 <ContentPanel title='Lessons' emptyText='No lessons yet.'>
@@ -485,12 +502,15 @@ if (errorMessage || !course) {
                                 className='border-b border-slate-100 py-3 last:border-0'
                             >
                                 <div className='flex items-start justify-between gap-3'>
-                                    <div>
+                                    <Link
+                                        to={`/lessons/${lesson.id}`}
+                                        className='block min-w-0 flex-1'
+                                    >
                                         <h3 className='font-medium text-slate-900'>{lesson.title}</h3>
-                                        <p className='mt-1 text-sm text-slate-600'>
+                                        <p className='mt-1 line-clamp-2 text-sm text-slate-600'>
                                             {lesson.content || 'No content provided.'}
                                         </p>
-                                    </div>
+                                    </Link>
 
                                     {isStudent && isEnrolled && (
                                         isCompleted ? (

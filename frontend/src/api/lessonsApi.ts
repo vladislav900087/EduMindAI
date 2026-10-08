@@ -29,3 +29,17 @@ export async function getMyProgress(): Promise<LessonProgress[]> {
     return response.data;
 
     }
+
+export async function getLesson(lessonId: number): Promise<Lesson> {
+    const response = await apiClient.get<Lesson>(
+        `/lessons/${lessonId}`,
+        );
+
+    return response.data;
+    }
+
+export async function deleteLesson(lessonId: number): Promise<void> {
+
+    await apiClient.delete(`/lessons/${lessonId}`);
+
+    }
