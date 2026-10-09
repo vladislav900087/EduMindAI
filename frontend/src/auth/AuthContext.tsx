@@ -8,8 +8,8 @@ import {
     type ReactNode
     } from 'react';
 
-import { getCurrentUser, loginUser, registerUser } from '../api/authApi';
-import type { LoginRequest, RegisterRequest, User } from '../types/auth';
+import { getCurrentUser, loginUser, registerUser, updateMyPreferences } from '../api/authApi';
+import type { LoginRequest, RegisterRequest, User, UserPreferencesUpdate } from '../types/auth';
 
 
 type AuthContextValue = {
@@ -20,6 +20,7 @@ type AuthContextValue = {
     login: (data: LoginRequest) => Promise<void>;
     register: (data: RegisterRequest) => Promise<void>;
     logout: () => void;
+    updatePreferences: (data: UserPreferencesUpdate) => Promise<void>;
 
     };
 
@@ -92,6 +93,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         }
 
+    async function updatePreferences(data: UserPreferencesUpdate) {
+
+        const updatedUser = await updateMyPreferences(data);
+        setUser(updatedUser);
+        }
+
     const value = useMemo<AuthContextValue>(
 
         () => ({
@@ -101,6 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             login,
             register,
             logout,
+            updatePreferences,
             }),
         [user, isLoading],
 

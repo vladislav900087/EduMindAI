@@ -2,6 +2,7 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
 from backend.app.models.user import UserRole, UserRegion, InterfaceLanguage
 
+
 class UserBase(BaseModel):
     email: EmailStr
     full_name: str = Field(min_length=1, max_length=255)

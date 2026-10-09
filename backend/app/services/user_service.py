@@ -39,8 +39,8 @@ class UserService:
         return create_access_token(str(user.id))
 
     def update_preferences(self, user: User, preferences: UserPreferencesUpdate) -> User:
-        user.region = preferences.region
-        user.language = preferences.language
+        user.region = preferences.region.value
+        user.language = preferences.language.value
 
         return self.repository.update(user)
 

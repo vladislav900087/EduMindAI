@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import type { LoginRequest, RegisterRequest, TokenResponse, User } from '../types/auth';
+import type { LoginRequest, RegisterRequest, TokenResponse, User, UserPreferencesUpdate } from '../types/auth';
 
 
 export async function registerUser(data: RegisterRequest): Promise<User> {
@@ -34,3 +34,13 @@ export async function getCurrentUser(): Promise<User> {
     return response.data;
 
     }
+
+export async function updateMyPreferences(data: UserPreferencesUpdate): Promise<User> {
+
+    const response = await apiClient.patch<User>('/users/me/preferences', data);
+
+    return response.data;
+    }
+
+
+
