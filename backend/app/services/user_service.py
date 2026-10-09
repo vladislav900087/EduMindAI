@@ -1,7 +1,7 @@
 from backend.app.core.security import hash_password, verify_password
 from backend.app.models.user import User
 from backend.app.repositories.user_repository import UserRepository
-from backend.app.schemas.user import UserCreate
+from backend.app.schemas.user import UserCreate, UserPreferencesUpdate
 from backend.app.core.jwt import create_access_token
 
 
@@ -37,5 +37,11 @@ class UserService:
         user = self.authenticate_user(email, password)
 
         return create_access_token(str(user.id))
+
+    def update_preferences(self, user: User, preferences: UserPreferencesUpdate) -> User:
+        user.region = preferences.region
+        user.language = preferences.language
+
+        return self.repository.update(user)
 
 
