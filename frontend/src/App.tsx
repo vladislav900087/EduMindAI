@@ -12,6 +12,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage'
 import QuizHistoryPage from './pages/QuizHistoryPage';
 import LessonDetailPage from './pages/LessonDetailPage';
+import SettingsPage from './pages/SettingsPage';
 
 import ProtectedRoute from './auth/ProtectedRoute';
 
@@ -35,6 +36,7 @@ function App() {
                     <Route path='/quizzes/:quizId/manage' element={<QuizManagePage />} />
                     <Route path='/quiz-history' element={<QuizHistoryPage />} />
                     <Route path='/lessons/:lessonId' element={<LessonDetailPage />} />
+                    <Route path='/settings' element={<SettingsPage />} />
                 </Route>
             </Route>
         </Routes>

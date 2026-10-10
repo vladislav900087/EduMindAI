@@ -1,5 +1,7 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { useEffect } from 'react';
 import { useAuth } from '../../auth/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 
 
@@ -8,17 +10,26 @@ function AppLayout() {
 
     const navigate = useNavigate();
     const { user, logout } = useAuth();
+    const { t, i18n } = useTranslation();
 
     const navItems = [
-    { to: "/dashboard", label: "Dashboard" },
-    { to: "/courses", label: "Courses" },
-    { to: "/assignments", label: "Assignments" },
+    { to: "/dashboard", label: t('nav.dashboard') },
+    { to: "/courses", label: t('nav.courses') },
+    { to: "/assignments", label: t('nav.assignments') },
+    { to: '/settings', label: t('nav.settings')},
 
     ...(user?.role === 'student'
-        ? [{to: '/quiz-history', label: 'Quiz history' }]
+        ? [{to: '/quiz-history', label: t('nav.quizHistory') }]
         : []),
 
     ];
+
+    useEffect(() => {
+        if (user) {
+                void i18n.changeLanguage(user.language);
+            }
+        }, [i18n, user?.language]);
+
 
     function handleLogout() {
 
