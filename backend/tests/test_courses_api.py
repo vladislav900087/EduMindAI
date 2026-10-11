@@ -534,6 +534,53 @@ def test_admin_can_view_teachers_draft_course(client, db_session):
     assert get_response.json()['status'] == CourseStatus.DRAFT
     assert get_response.json()['id'] == course_id
 
+def test_teacher_can_create_paid_course(client, db_session):
+
+    teacher = create_test_user(db_session, 'paid_course_owner@example.com', role=UserRole.TEACHER)
+    token = get_access_token(client, teacher.email)
+
+    payload = {
+        'title': 'Paid course',
+        'description': 'Paid course\'s description',
+        'price_amount': 10000,
+        'currency': 'KZT'
+    }
+
+    create_response = client.post('/courses', headers={'Authorization': f'Bearer {token}'}, json=payload)
+
+    assert create_response.status_code == 201
+    assert create_response.json()['price_amount'] == payload['price_amount']
+    assert create_response.json()['currency'] == payload['currency']
+
+def test_teacher_cannot_create_paid_course_with_negative_price_amount(client, db_session):
+
+    teacher = create_test_user(db_session, 'teacher_cannot_create_paid_course_with_negative_price_amount@example.com', role=UserRole.TEACHER)
+    token = get_access_token(client, teacher.email)
+
+    payload = {
+        'title': 'Paid course with negative price amount',
+        'description': 'Paid course\'s description',
+        'price_amount': -10000,
+        'currency': 'KZT'
+    }
+
+    create_response = client.post('/courses', headers={"Authorization": f'Bearer {token}'}, json=payload)
+
+    assert create_response.status_code == 422
+
+def test_course_defaults_to_free(client, db_session):
+
+    teacher = create_test_user(db_session, 'free_course_owner@example.com', role=UserRole.TEACHER)
+
+    token = get_access_token(client, teacher.email)
+
+    response = client.post('/courses', headers={'Authorization': f'Bearer {token}'}, json={"title": 'Free course title'})
+
+    assert response.status_code == 201
+    assert response.json()['price_amount'] == 0
+    assert response.json()['currency'] == 'KZT'
+
+
 
 
 

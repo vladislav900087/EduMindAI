@@ -8,7 +8,7 @@ class CourseService:
         self.repository = repository
 
     def create_course(self, course_data: CourseCreate, teacher: User) -> Course:
-        course = Course(title=course_data.title, description=course_data.description, teacher_id=teacher.id)
+        course = Course(title=course_data.title, description=course_data.description, teacher_id=teacher.id, price_amount=course_data.price_amount, currency=course_data.currency)
 
         return self.repository.create(course)
 
