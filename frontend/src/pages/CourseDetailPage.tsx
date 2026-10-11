@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 import { getCourse } from '../api/coursesApi';
 import { getCourseAssignments } from '../api/assignmentsApi';
@@ -29,6 +30,7 @@ import { createAssignment } from '../api/assignmentsApi';
 
 
 function CourseDetailPage() {
+    const { t } = useTranslation();
 
     const { courseId } = useParams();
 
@@ -88,7 +90,7 @@ function CourseDetailPage() {
 
             if (!courseId) {
 
-                setErrorMessage('Course id is missing.');
+                setErrorMessage(t('learning.courseIdMissing'));
                 setIsLoading(false);
                 return;
 
@@ -159,7 +161,7 @@ function CourseDetailPage() {
 
                 } catch {
 
-                    setErrorMessage(`Could not load course content.`);
+                    setErrorMessage(t('learning.loadCourseError'));
 
 
                     } finally {
@@ -195,7 +197,7 @@ function CourseDetailPage() {
                setLessonContent('');
 
                } catch {
-                   setTeacherActionError('Could not create lesson.');
+                   setTeacherActionError(t('learning.createLessonError'));
                    }
 
         }
@@ -223,7 +225,7 @@ function CourseDetailPage() {
              setQuizDescription('');
 
             } catch {
-                setTeacherActionError('Could not create quiz.');
+                setTeacherActionError(t('learning.createQuizError'));
                 }
 
         }
@@ -253,7 +255,7 @@ function CourseDetailPage() {
             setAssignmentDueAt('');
 
             } catch {
-                setTeacherActionError('Could not create assignment.');
+                setTeacherActionError(t('learning.createAssignmentError'));
                 }
         }
 
@@ -296,7 +298,7 @@ function CourseDetailPage() {
 
             } catch {
 
-                setActionError('Could not enroll in this course.');
+                setActionError(t('learning.enrollError'));
 
 
                 }
@@ -320,7 +322,7 @@ function CourseDetailPage() {
 
             } catch {
 
-                setActionError('Could not mark this lesson complete');
+                setActionError(t('learning.completeError'));
 
                 }
         }
@@ -330,7 +332,7 @@ function CourseDetailPage() {
 
         return (
             <section className='rounded-lg border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm'>
-                Loading course...
+                {t('learning.loadCourse')}
             </section>
 
             );
@@ -341,7 +343,7 @@ if (errorMessage || !course) {
 
         return (
             <section className='rounded-lg border border-red-200 bg-red-50 p-6 text-sm text-red-700'>
-                {errorMessage || 'Course not found.'}
+                {errorMessage || t('learning.courseNotFound')}
             </section>
 
 
@@ -353,12 +355,12 @@ if (errorMessage || !course) {
     return (
         <section>
             <Link className='text-sm text-blue-600 hover:text-blue-700' to='/courses'>
-                Back to courses
+                {t('learning.backToCourses')}
             </Link>
 
             <div className='mt-5 rounded-lg border border-slate-200 bg-white p-6 shadow-sm'>
                     <span className='rounded-md bg-blue-50 px-2.5 py-1 text-xs font-medium capitalize text-blue-700'>
-                        {course.status}
+                        {t(`status.${course.status}`, { defaultValue: course.status })}
                     </span>
 
                     <h1 className='mt-4 text-2xl font-semibold text-slate-950'>
@@ -366,7 +368,7 @@ if (errorMessage || !course) {
                     </h1>
 
                     <p className='mt-3 max-w-3xl text-slate-600'>
-                        {course.description || 'No description provided.'}
+                        {course.description || t('common.noDescription')}
                     </p>
 
                     {isStudent && (
@@ -374,8 +376,8 @@ if (errorMessage || !course) {
                                 {isEnrolled ? (
                                         <div>
                                             <p className='text-sm font-medium text-slate-900'>
-                                                Progress: {courseProgress?.completed_lessons ?? 0}/
-                                                {courseProgress?.total_lessons ?? lessons.length} lessons
+                                                {t('learning.progress')}: {courseProgress?.completed_lessons ?? 0}/
+                                                {courseProgress?.total_lessons ?? lessons.length} {t('learning.lessons')}
                                             </p>
 
                                             <div className='mt-2 h-2 rounded-full bg-slate-100'>
@@ -390,7 +392,7 @@ if (errorMessage || !course) {
 
                                     ) : (
                                             <Button type='button' onClick={handleEnroll}>
-                                                Enroll in course
+                                                {t('learning.enroll')}
                                             </Button>
 
                                         )}
@@ -413,11 +415,11 @@ if (errorMessage || !course) {
                             )}
 
                         <div className='grid gap-4 lg:grid-cols-3'>
-                            <FormCard title='Add lesson'>
+                            <FormCard title={t('learning.addLesson')}>
                                 <form className='space-y-3' onSubmit={handleCreateLesson}>
                                     <input
                                         className='w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
-                                        placeholder='Lesson title'
+                                        placeholder={t('learning.lessonTitle')}
                                         value={lessonTitle}
                                         onChange={(event) => setLessonTitle(event.target.value)}
                                         required
@@ -425,20 +427,20 @@ if (errorMessage || !course) {
 
                                      <textarea
                                         className='min-h-24 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
-                                        placeholder='Lesson content'
+                                        placeholder={t('learning.lessonContent')}
                                         value={lessonContent}
                                         onChange={(event) => setLessonContent(event.target.value)}
                                       />
 
-                                      <Button type='submit'>Create lesson</Button>
+                                      <Button type='submit'>{t('learning.createLesson')}</Button>
                                 </form>
                             </FormCard>
 
-                            <FormCard title='Add quiz'>
+                            <FormCard title={t('learning.addQuiz')}>
                                 <form className='space-y-3' onSubmit={handleCreateQuiz}>
                                     <input
                                         className='w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
-                                        placeholder='Quiz title'
+                                        placeholder={t('learning.quizTitle')}
                                         value={quizTitle}
                                         onChange={(event) => setQuizTitle(event.target.value)}
                                         required
@@ -446,21 +448,21 @@ if (errorMessage || !course) {
 
                                     <textarea
                                         className='min-h-24 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
-                                        placeholder='Quiz description'
+                                        placeholder={t('learning.quizDescription')}
                                         value={quizDescription}
                                         onChange={(event) => setQuizDescription(event.target.value)}
                                      />
 
-                                     <Button type='submit'>Create quiz</Button>
+                                     <Button type='submit'>{t('learning.createQuiz')}</Button>
 
                                 </form>
                             </FormCard>
 
-                            <FormCard title='Add assignment'>
+                            <FormCard title={t('learning.addAssignment')}>
                                 <form className='space-y-3' onSubmit={handleCreateAssignment}>
                                     <input
                                         className='w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
-                                        placeholder='Assignment title'
+                                        placeholder={t('learning.assignmentTitle')}
                                         value={assignmentTitle}
                                         onChange={(event) => setAssignmentTitle(event.target.value)}
                                         required
@@ -468,7 +470,7 @@ if (errorMessage || !course) {
 
                                      <textarea
                                         className='min-h-24 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
-                                        placeholder='Assignment description'
+                                        placeholder={t('learning.assignmentDescription')}
                                         value={assignmentDescription}
                                         onChange={(event) => setAssignmentDescription(event.target.value)}
                                       />
@@ -481,7 +483,7 @@ if (errorMessage || !course) {
 
                                       />
 
-                                     <Button type='submit'>Create assignment</Button>
+                                     <Button type='submit'>{t('learning.createAssignment')}</Button>
                                 </form>
                             </FormCard>
                         </div>
@@ -492,7 +494,7 @@ if (errorMessage || !course) {
         {(canManageCourse || (isStudent && isEnrolled)) && (
 
             <div className='mt-6 grid gap-4 lg:grid-cols-3'>
-                <ContentPanel title='Lessons' emptyText='No lessons yet.'>
+                <ContentPanel title={t('learning.lessonsTitle')} emptyText={t('learning.noLessons')}>
                     {lessons.map((lesson) => {
                         const isCompleted = completedLessonIds.has(lesson.id);
 
@@ -508,14 +510,14 @@ if (errorMessage || !course) {
                                     >
                                         <h3 className='font-medium text-slate-900'>{lesson.title}</h3>
                                         <p className='mt-1 line-clamp-2 text-sm text-slate-600'>
-                                            {lesson.content || 'No content provided.'}
+                                            {lesson.content || t('learning.noContent')}
                                         </p>
                                     </Link>
 
                                     {isStudent && isEnrolled && (
                                         isCompleted ? (
                                                 <span className='rounded-md bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700'>
-                                                    Completed
+                                                    {t('learning.completed')}
                                                 </span>
                                             ) : (
                                                     <Button
@@ -524,7 +526,7 @@ if (errorMessage || !course) {
                                                         variant='secondary'
                                                         onClick={() => handleCompleteLesson(lesson.id)}
                                                     >
-                                                        Complete
+                                                        {t('learning.complete')}
                                                     </Button>
                                                 )
                                         )}
@@ -537,7 +539,7 @@ if (errorMessage || !course) {
 
                         })}
                 </ContentPanel>
-                <ContentPanel title='Quizzes' emptyText='No quizzes yet.'>
+                <ContentPanel title={t('learning.quizzes')} emptyText={t('learning.noQuizzes')}>
                     {quizzes.map((quiz) => (
                             <Link
                                 key={quiz.id}
@@ -546,13 +548,13 @@ if (errorMessage || !course) {
                             >
                                 <h3 className='font-medium text-slate-900'>{quiz.title}</h3>
                                 <p className='mt-1 text-sm text-slate-600'>
-                                    {quiz.description || 'No description provided.'}
+                                    {quiz.description || t('common.noDescription')}
                                 </p>
                             </Link>
                         ))}
                 </ContentPanel>
 
-                <ContentPanel title='Assignments' emptyText='No assignments yet.'>
+                <ContentPanel title={t('learning.assignments')} emptyText={t('learning.noAssignments')}>
                     {assignments.map((assignment) => (
                             <Link
                                 key={assignment.id}
@@ -561,12 +563,12 @@ if (errorMessage || !course) {
                             >
                                 <h3 className='font-medium text-slate-900'>{assignment.title}</h3>
                                 <p className='mt-1 text-sm text-slate-600'>
-                                    {assignment.description || 'No description provided.'}
+                                    {assignment.description || t('common.noDescription')}
                                 </p>
 
                                 {assignment.due_at && (
                                         <p>
-                                            Due: {new Date(assignment.due_at).toLocaleString()}
+                                            {t('learning.due')}: {new Date(assignment.due_at).toLocaleString()}
                                         </p>
                                     )}
                             </Link>

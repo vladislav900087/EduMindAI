@@ -28,7 +28,7 @@ function AppLayout() {
         if (user) {
                 void i18n.changeLanguage(user.language);
             }
-        }, [i18n, user?.language]);
+        }, [i18n, user]);
 
 
     function handleLogout() {
@@ -43,7 +43,7 @@ function AppLayout() {
             <aside className='fixed inset-y-0 left-0 hidden w-64 border-r border-slate-200 bg-white px-5 py-6 md:block'>
                 <div>
                     <p className='text-sm font-medium text-blue-600'>EduMindAI</p>
-                    <h1 className='mt-1 text-lg font-semibold text-slate-950'>Learning Portal</h1>
+                    <h1 className='mt-1 text-lg font-semibold text-slate-950'>{t('brand.portal')}</h1>
                 </div>
 
                 <nav className='mt-8 space-y-1'>
@@ -74,14 +74,14 @@ function AppLayout() {
                         <div className='flex items-center gap-3'>
                             <div className='text-right'>
                                 <p className='text-sm font-medium text-slate-900'>{user?.full_name}</p>
-                                <p className='text-xs capitalize text-slate-500'>{user?.role}</p>
+                                <p className='text-xs text-slate-500'>{user?.role ? t(`role.${user.role}`) : ''}</p>
                             </div>
 
                             <button
                                 className='rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100'
                                 type='button'
                                 onClick={handleLogout}
-                            >Log out</button>
+                            >{t('nav.logout')}</button>
                         </div>
                     </div>
 

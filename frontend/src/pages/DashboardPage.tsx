@@ -12,6 +12,7 @@ import { getMyCourses } from '../api/coursesApi';
 import {getMyEnrollments } from '../api/enrollmentsApi';
 import { getMyCompletedQuizAttempts} from '../api/quizAttemptsApi';
 import { useAuth } from '../auth/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 type DashboardStats = {
     courses: number;
@@ -43,6 +44,9 @@ function DashboardPage() {
     const [errorMessage, setErrorMessage] = useState('');
 
     const isStudent = user?.role === 'student';
+
+    const { t } = useTranslation();
+
 
     useEffect(() => {
 
@@ -101,7 +105,7 @@ function DashboardPage() {
                             });
                     }
                 } catch {
-                    setErrorMessage('Could not load dashboard information.');
+                    setErrorMessage(t('dashboard.loadError'));
                     } finally {
                         setIsLoading(false);
                         }
@@ -113,7 +117,7 @@ function DashboardPage() {
 
         return (
             <p className='text-sm text-slate-600'>
-                Loading dashboard...
+                {t('common.loading')}
             </p>
             );
 
@@ -124,15 +128,15 @@ function DashboardPage() {
     return (
         <section>
             <p className='text-sm font-medium text-blue-600'>
-                Overview
+                {t('dashboard.overview')}
             </p>
 
             <h1 className='mt-2 text-2xl font-semibold text-slate-950'>
-                Welcome, {user?.full_name}
+                {t('dashboard.welcome', { name: user?.full_name })}
             </h1>
 
             <p className='mt-2 text-slate-600'>
-                {isStudent ? 'Track your learning and recent results.' : 'Manage your courses and student work.'}
+                {isStudent ? t('dashboard.studentDescription') : t('dashboard.teacherDescription')}
             </p>
 
             {errorMessage && (
@@ -144,17 +148,17 @@ function DashboardPage() {
             {!errorMessage && isStudent && (
                 <>
                     <div className='mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4'>
-                        <Stat label='Enrolled courses' value={stats.courses} />
+                        <Stat label={t('dashboard.enrolledCourses')} value={stats.courses} />
                         <Stat
-                            label='Submitted assignments'
+                            label={t('dashboard.submittedAssignments')}
                             value={stats.assignments}
                         />
                         <Stat
-                            label='Graded assignments'
+                            label={t('dashboard.gradedAssignments')}
                             value={stats.gradedAssignments}
                         />
                         <Stat
-                            label='Average quiz score'
+                            label={t('dashboard.averageQuizScore')}
                             value={`${stats.averageQuizScore}%`}
                         />
                     </div>
@@ -164,21 +168,21 @@ function DashboardPage() {
                             to='/courses'
                             className='rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700'
                          >
-                            Continue learning...
+                            {t('dashboard.continueLearning')}
                          </Link>
 
                          <Link
                             to='/assignments'
                             className='rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100'
                          >
-                            View assignments
+                            {t('dashboard.viewAssignments')}
                          </Link>
 
                          <Link
                             to='/quiz-history'
                             className='rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100'
                          >
-                            Quiz history
+                            {t('nav.quizHistory')}
                          </Link>
                     </div>
 
@@ -188,13 +192,13 @@ function DashboardPage() {
             {!errorMessage && !isStudent && (
                 <>
                     <div className='mt-8 grid gap-4 sm:grid-cols-3'>
-                        <Stat label='My courses' value={stats.courses} />
+                        <Stat label={t('dashboard.myCourses')} value={stats.courses} />
                         <Stat
-                            label='Assignments'
+                            label={t('dashboard.assignments')}
                             value={stats.assignments}
                          />
                          <Stat
-                            label='Awaiting grading'
+                            label={t('dashboard.awaitingGrading')}
                             value={stats.submissionsToGrade}
                          />
                     </div>
@@ -204,14 +208,14 @@ function DashboardPage() {
                             to='/courses'
                             className='rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700'
                         >
-                            Manage courses
+                            {t('dashboard.manageCourses')}
                         </Link>
 
                         <Link
                             to='/assignments'
                             className='rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100'
                         >
-                            Review assignments
+                            {t('dashboard.reviewAssignments')}
                         </Link>
                     </div>
                 </>

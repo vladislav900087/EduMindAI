@@ -1,5 +1,6 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getLesson, getMyProgress, deleteLesson, completeLesson } from '../api/lessonsApi';
 import { getCourse } from '../api/coursesApi';
 import { useAuth } from '../auth/AuthContext';
@@ -12,6 +13,7 @@ import axios from 'axios';
 
 
 function LessonDetailPage() {
+    const { t } = useTranslation();
 
     const { lessonId } = useParams();
     const { user } = useAuth();
@@ -63,7 +65,7 @@ function LessonDetailPage() {
 
                 if (!lessonId) {
 
-                        setErrorMessage('Lesson id is missing.');
+                        setErrorMessage(t('learning.lessonIdMissing'));
                         setIsLoading(false);
                         return;
                     }
@@ -71,7 +73,7 @@ function LessonDetailPage() {
                 const id = Number(lessonId);
 
                 if (!Number.isInteger(id) || id <= 0) {
-                    setErrorMessage('Invalid lesson id.');
+                    setErrorMessage(t('learning.invalidLessonId'));
                     setIsLoading(false);
                     return;
                     }
@@ -127,11 +129,11 @@ function LessonDetailPage() {
                                     setErrorMessage(
                                             typeof detail === 'string'
                                                 ? detail
-                                                : 'Could not load lesson.'
+                                                : t('learning.loadLessonError')
                                         );
 
                                 } else {
-                                    setErrorMessage('Could not load lesson.');
+                                    setErrorMessage(t('learning.loadLessonError'));
                                     }
                                 } finally {
 
@@ -167,7 +169,7 @@ function LessonDetailPage() {
                 })
 
             } catch {
-                setActionError('Could not delete this lesson.');
+                setActionError(t('learning.deleteLessonError'));
                 } finally {
                     setPendingAction(null);
                     }
@@ -187,7 +189,7 @@ function LessonDetailPage() {
             setProgress(progress);
 
             } catch {
-                setActionError('Could not mark this lesson complete.');
+                setActionError(t('learning.completeError'));
                 } finally {
                     setPendingAction(null);
                     }
@@ -198,7 +200,7 @@ function LessonDetailPage() {
 
         return (
             <section className='rounded-lg border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm'>
-                Loading course...
+                {t('learning.loadLesson')}
             </section>
             );
         }
@@ -207,7 +209,7 @@ function LessonDetailPage() {
 
         return (
             <section className='rounded-lg border border-red-200 bg-red-50 p-6 text-sm text-red-700'>
-                {errorMessage || 'Lesson not found.'}
+                {errorMessage || t('learning.lessonNotFound')}
             </section>
             );
         }
@@ -216,7 +218,7 @@ function LessonDetailPage() {
     return (
         <section>
             <Link className='text-sm text-blue-600 hover:text-blue-700' to={`/courses/${lesson.course_id}`}>
-                Back to course
+                {t('common.backToCourse')}
             </Link>
 
             <div className='mt-5 rounded-lg border border-slate-200 bg-white p-6 shadow-sm'>
@@ -225,7 +227,7 @@ function LessonDetailPage() {
                 </h1>
 
                 <p className='mt-3 max-w-3xl text-slate-600 mb-10'>
-                    {lesson.content || 'No content provided.'}
+                    {lesson.content || t('learning.noContent')}
                 </p>
 
                 {isStudent && isEnrolled && (
@@ -233,7 +235,7 @@ function LessonDetailPage() {
                         {isCompleted ? (
                             <div>
                                 <span className='rounded-md bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700'>
-                                    Completed
+                                    {t('learning.completed')}
                                 </span>
 
                             </div>
@@ -241,8 +243,8 @@ function LessonDetailPage() {
                                     <Button type='button' onClick={handleCompleteLesson}>
                                         {
                                             pendingAction === 'complete'
-                                                ? 'Completing...'
-                                                : 'Complete lesson'
+                                                ? t('learning.completing')
+                                                : t('learning.completeLesson')
                                             }
                                     </Button>
                                 )}
@@ -262,8 +264,8 @@ function LessonDetailPage() {
                     <Button type='button' onClick={handleDeleteLesson}>
                         {
                             pendingAction === 'delete'
-                                ? 'Deleting...'
-                                : 'Delete lesson'
+                                ? t('learning.deleting')
+                                : t('learning.deleteLesson')
                             }
                     </Button>
                     )}

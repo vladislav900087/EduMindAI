@@ -1,5 +1,6 @@
 import { type FormEvent, useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 import { useAuth } from '../auth/AuthContext';
 
@@ -7,6 +8,7 @@ function LoginPage() {
 
     const navigate = useNavigate();
     const { isAuthenticated, login } = useAuth();
+    const { t } = useTranslation();
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -30,7 +32,7 @@ function LoginPage() {
             await login({ email, password });
             navigate('/dashboard');
             } catch {
-                setErrorMessage('Invalid email or password.');
+                setErrorMessage(t('auth.invalidCredentials'));
 
                 } finally {
                     setIsSubmitting(false);
@@ -43,12 +45,12 @@ function LoginPage() {
         <main className='flex min-h-screen items-center justify-center bg-slate-50 px-6'>
             <section className='w-full max-w-md rounded-lg border border-slate-200 bg-white p-8 shadow-sm'>
                 <p className='text-sm font-medium text-blue-600'>EduMindAI</p>
-                <h1 className='mt-2 text-2xl font-semibold text-slate-900'>Sign in</h1>
-                <p className='mt-2 text-sm text-slate-600'>Access your courses, lessons, quizzes, and assignments</p>
+                <h1 className='mt-2 text-2xl font-semibold text-slate-900'>{t('auth.signIn')}</h1>
+                <p className='mt-2 text-sm text-slate-600'>{t('auth.loginDescription')}</p>
 
                 <form className='mt-6 space-y-4' onSubmit={handleSubmit}>
                     <label className='block'>
-                        <span className='text-sm font-medium text-slate-700'>Email</span>
+                        <span className='text-sm font-medium text-slate-700'>{t('auth.email')}</span>
                         <input
                             className='mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
                             type="email"
@@ -59,7 +61,7 @@ function LoginPage() {
                     </label>
 
                     <label className='block'>
-                        <span className='text-sm font-medium text-slate-700'>Password</span>
+                        <span className='text-sm font-medium text-slate-700'>{t('auth.password')}</span>
                         <input
                             className='mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
                             type='password'
@@ -83,13 +85,13 @@ function LoginPage() {
                         disabled={isSubmitting}
 
                     >
-                        {isSubmitting ? "Signing in..." : "Sign in"}
+                        {isSubmitting ? t('auth.signingIn') : t('auth.signIn')}
                     </button>
                 </form>
 
                 <p className="mt-5 text-center text-sm text-slate-600">
-                    No account?{" "}
-                    <Link className='font-medium text-blue-600 hover:text-blue-700' to='/register'>Create one</Link>
+                    {t('auth.noAccount')}{' '}
+                    <Link className='font-medium text-blue-600 hover:text-blue-700' to='/register'>{t('auth.createOne')}</Link>
                 </p>
 
             </section>

@@ -6,12 +6,14 @@ import CourseForm from '../components/courses/CourseForm';
 import Button from '../components/ui/Button';
 import { useAuth } from '../auth/AuthContext';
 import type { Course } from '../types/course';
+import { useTranslation } from 'react-i18next';
 
 
 
 function CoursesPage() {
 
     const { user } = useAuth();
+    const { t } = useTranslation();
 
     const [courses, setCourses] = useState<Course[]>([]);
     const [myCourses, setMyCourses] = useState<Course[]>([]);
@@ -38,7 +40,7 @@ function CoursesPage() {
 
                 } catch {
 
-                    setErrorMessage('Could not load courses.');
+                    setErrorMessage(t('courses.loadError'));
 
                     } finally {
                         setIsLoading(false);
@@ -107,14 +109,14 @@ function CoursesPage() {
         <section>
             <div className='flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between'>
                 <div>
-                    <p className='text-sm font-medium text-blue-600'>Courses</p>
-                    <h1 className='mt-2 text-2xl font-semibold text-slate-900'>Course catalog</h1>
-                    <p className='mt-2 text-slate-600'>Explore available courses and continue learning.</p>
+                    <p className='text-sm font-medium text-blue-600'>{t('courses.title')}</p>
+                    <h1 className='mt-2 text-2xl font-semibold text-slate-900'>{t('courses.catalog')}</h1>
+                    <p className='mt-2 text-slate-600'>{t('courses.description')}</p>
                 </div>
             </div>
 
             {isLoading && (
-                <div className='mt-8 rounded-lg border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm'>Loading courses...</div>
+                <div className='mt-8 rounded-lg border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm'>{t('courses.loading')}</div>
 
                 )}
 
@@ -130,12 +132,12 @@ function CoursesPage() {
 
                     <section>
                         <h2 className='text-lg font-semibold text-slate-900'>
-                            My courses
+                            {t('courses.mine')}
                         </h2>
 
                         {myCourses.length === 0 ? (
                             <div className='mt-4 rounded-lg border border-dashed border-slate-300 bg-white p-6 text-sm text-slate-600 shadow-sm'>
-                                You have not created any courses yet.
+                                {t('courses.noneMine')}
                             </div>
 
                             ) : (
@@ -161,7 +163,7 @@ function CoursesPage() {
                                                         {course.title}
                                                     </h3>
                                                     <p className='mt-2 text-sm text-slate-600'>
-                                                        {course.description || 'No description provided.'}
+                                                        {course.description || t('common.noDescription')}
                                                     </p>
                                                 </div>
                                                 <div className='flex shrink-0 gap-2'>
@@ -169,7 +171,7 @@ function CoursesPage() {
                                                         className='rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100'
                                                         to={`/courses/${course.id}`}
                                                     >
-                                                        Open
+                                                        {t('common.open')}
                                                     </Link>
 
                                                     {course.status === 'draft' && (
@@ -177,7 +179,7 @@ function CoursesPage() {
                                                             type='button'
                                                             onClick={() => handlePublishCourse(course.id)}
                                                         >
-                                                            Publish
+                                                            {t('common.publish')}
                                                         </Button>
 
                                                         )}
@@ -195,16 +197,16 @@ function CoursesPage() {
             {!isLoading && !errorMessage && (
                 <section className='mt-10'>
                     <h2 className='text-lg font-semibold text-slate-900'>
-                        All courses
+                        {t('courses.all')}
                     </h2>
 
                     {courses.length === 0 ? (
                         <div className='mt-4 rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center shadow-sm'>
                             <h3 className='text-lg font-semibold text-slate-900'>
-                                No courses yet
+                                {t('courses.none')}
                             </h3>
                             <p>
-                                Published courses will appear here.
+                                {t('courses.publishedHere')}
                             </p>
                         </div>
 
@@ -228,10 +230,10 @@ function CoursesPage() {
                                         {course.title}
                                     </h3>
                                     <p className='mt-2 text-sm text-slate-600'>
-                                        {course.description || 'No description provided.'}
+                                        {course.description || t('common.noDescription')}
                                     </p>
                                     <div className='mt-5 text-sm font-medium text-blue-600'>
-                                        Open course
+                                        {t('courses.openCourse')}
                                     </div>
                                  </Link>
                                  ))}

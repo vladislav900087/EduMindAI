@@ -1,4 +1,5 @@
 import { type FormEvent, useState } from "react";
+import { useTranslation } from 'react-i18next';
 
 import Button from "../ui/Button";
 
@@ -12,6 +13,7 @@ type CourseFormProps = {
 };
 
 function CourseForm({ onSubmit }: CourseFormProps) {
+  const { t } = useTranslation();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -49,11 +51,11 @@ function CourseForm({ onSubmit }: CourseFormProps) {
       className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"
       onSubmit={handleSubmit}
     >
-      <h2 className="text-lg font-semibold text-slate-900">Create course</h2>
+      <h2 className="text-lg font-semibold text-slate-900">{t('work.createCourse')}</h2>
 
       <div className="mt-4 space-y-4">
         <label className="block">
-          <span className="text-sm font-medium text-slate-700">Title</span>
+          <span className="text-sm font-medium text-slate-700">{t('work.title')}</span>
           <input
             className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             type="text"
@@ -65,7 +67,7 @@ function CourseForm({ onSubmit }: CourseFormProps) {
         </label>
 
         <label className="block">
-          <span className="text-sm font-medium text-slate-700">Description</span>
+          <span className="text-sm font-medium text-slate-700">{t('work.description')}</span>
           <textarea
             className="mt-1 min-h-24 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             value={description}
@@ -80,7 +82,7 @@ function CourseForm({ onSubmit }: CourseFormProps) {
         )}
 
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Creating..." : "Create course"}
+          {isSubmitting ? t('work.creating') : t('work.createCourse')}
         </Button>
       </div>
     </form>

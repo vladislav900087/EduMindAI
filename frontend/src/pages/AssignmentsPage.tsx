@@ -7,6 +7,7 @@ import { getMyEnrollments } from '../api/enrollmentsApi';
 import { useAuth } from '../auth/AuthContext';
 import type { Assignment, AssignmentSubmission } from '../types/assignment';
 import type { Course } from '../types/course';
+import { useTranslation } from 'react-i18next';
 
 
 type AssignmentRow = {
@@ -17,6 +18,7 @@ type AssignmentRow = {
 
 function AssignmentsPage() {
 
+    const { t } = useTranslation();
     const { user } = useAuth();
     const isStudent = user?.role === 'student';
 
@@ -113,7 +115,7 @@ function AssignmentsPage() {
     return (
         <section>
             <h1 className='text-2xl font-semibold text-slate-950'>
-                Assignments
+                {t('nav.assignments')}
             </h1>
 
             {isLoading && (
