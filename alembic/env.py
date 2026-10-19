@@ -19,6 +19,8 @@ from backend.app.models.quiz_attempt_answer import QuizAttemptAnswer
 from backend.app.models.assignment import Assignment
 from backend.app.models.assignment_submission import AssignmentSubmission
 from backend.app.models.assignment_deadline_reminder import AssignmentDeadlineReminder
+from backend.app.models.course_purchase import CoursePurchase
+from backend.app.models.wallet_transaction import WalletTransaction
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
