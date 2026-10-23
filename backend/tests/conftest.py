@@ -4,6 +4,8 @@ from sqlalchemy.orm import Session
 
 from backend.app.core.config import settings
 from backend.app.db.database import Base
+from backend.app.models.course_purchase import CoursePurchase
+from backend.app.models.wallet_transaction import WalletTransaction
 
 from fastapi.testclient import TestClient
 from backend.app.main import app
