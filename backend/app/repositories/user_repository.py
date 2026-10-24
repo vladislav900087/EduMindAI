@@ -33,3 +33,10 @@ class UserRepository:
         statement = select(User)
 
         return list(self.db.scalars(statement))
+
+    def get_by_id_for_update(self, user_id: int) -> User | None:
+        statement = select(User).where(User.id == user_id).with_for_update()
+
+        return self.db.scalar(statement)
+
+

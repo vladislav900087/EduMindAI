@@ -15,6 +15,13 @@ class WalletTransactionRepository:
 
         return wallet_transaction
 
+    def create_without_commit(self, wallet_transaction: WalletTransaction) -> WalletTransaction:
+
+        self.db.add(wallet_transaction)
+        self.db.flush()
+
+        return wallet_transaction
+
     def list_completed_by_user(self, user_id: int) -> list[WalletTransaction]:
         statement = select(WalletTransaction).where(WalletTransaction.user_id == user_id, WalletTransaction.status == WalletTransactionStatus.COMPLETED).order_by(WalletTransaction.created_at.asc())
 

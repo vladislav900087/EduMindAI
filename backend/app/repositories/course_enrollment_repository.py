@@ -14,6 +14,13 @@ class CourseEnrollmentRepository:
 
         return enrollment
 
+    def create_without_commit(self, enrollment: CourseEnrollment) -> CourseEnrollment:
+
+        self.db.add(enrollment)
+        self.db.flush()
+
+        return enrollment
+
     def get_by_id(self, enrollment_id: int) -> CourseEnrollment | None:
         statement = select(CourseEnrollment).where(CourseEnrollment.id == enrollment_id)
 

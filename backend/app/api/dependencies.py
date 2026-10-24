@@ -42,6 +42,9 @@ from backend.app.services.ai_quiz_generation_service import AIQuizGenerationServ
 
 from backend.app.repositories.quiz_question_repository import QuizQuestionRepository
 
+from backend.app.repositories.wallet_transaction_repository import WalletTransactionRepository
+from backend.app.services.wallet_transaction_service import WalletTransactionService
+
 
 
 
@@ -379,6 +382,14 @@ def get_assignment_for_view(
     require_course_content_access(course, current_user, db)
 
     return assignment
+
+def get_transaction_repository(db: Session = Depends(get_db)):
+    return WalletTransactionRepository(db=db)
+
+def get_transaction_service(repository: WalletTransactionRepository = Depends(get_transaction_repository)):
+    return WalletTransactionService(repository=repository)
+
+
 
 
 
