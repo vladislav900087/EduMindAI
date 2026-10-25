@@ -7,7 +7,9 @@ from backend.app.schemas.course import CourseCreate, CourseRead
 from backend.app.schemas.lesson_progress import CourseProgressRead
 from backend.app.services.course_service import CourseService
 from backend.app.services.lesson_progress_service import LessonProgressService
-from backend.app.api.dependencies import get_course_service, get_course_for_management, get_lesson_progress_service, get_course_for_view, get_course_for_content_access
+from backend.app.api.dependencies import get_course_service, get_course_for_management, get_lesson_progress_service, get_course_for_view, get_course_for_content_access, get_purchase_service
+from backend.app.schemas.course_purchase import CoursePurchaseRead
+from backend.app.services.course_purchase_service import CoursePurchaseService
 
 
 router = APIRouter(prefix='/courses', tags=['Courses'])
@@ -23,6 +25,21 @@ def publish_course(course_id: int, course=Depends(get_course_for_management), se
         return service.publish_course(course_id)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+@router.post('/{course_id}/purchase', status_code=status.HTTP_201_CREATED, response_model=CoursePurchaseRead)
+def purchase_course(course_id: int, current_user: User = Depends(get_current_user), service: CoursePurchaseService = Depends(get_purchase_service)):
+
+    if current_user.role != UserRole.STUDENT:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Only students can buy payment-required courses')
+
+    try:
+        return service.purchase_course(student_id=current_user.id, course_id=course_id)
+
+    except ValueError as exc:
+        if 'not found' in str(exc):
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+        else:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
 
 @router.get('', response_model=list[CourseRead], status_code=status.HTTP_200_OK)

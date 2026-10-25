@@ -45,6 +45,10 @@ from backend.app.repositories.quiz_question_repository import QuizQuestionReposi
 from backend.app.repositories.wallet_transaction_repository import WalletTransactionRepository
 from backend.app.services.wallet_transaction_service import WalletTransactionService
 
+from backend.app.repositories.course_purchase_repository import CoursePurchaseRepository
+from backend.app.services.course_purchase_service import CoursePurchaseService
+
+
 
 
 
@@ -388,6 +392,12 @@ def get_transaction_repository(db: Session = Depends(get_db)):
 
 def get_transaction_service(repository: WalletTransactionRepository = Depends(get_transaction_repository)):
     return WalletTransactionService(repository=repository)
+
+def get_purchase_repository(db: Session = Depends(get_db)):
+    return CoursePurchaseRepository(db=db)
+
+def get_purchase_service(user_repository: UserRepository = Depends(get_user_repository), course_repository: CourseRepository = Depends(get_course_repository), enrollment_repository: CourseEnrollmentRepository = Depends(get_course_enrollment_repository), transaction_repository: WalletTransactionRepository = Depends(get_transaction_repository), purchase_repository: CoursePurchaseRepository = Depends(get_purchase_repository), db: Session = Depends(get_db)):
+    return CoursePurchaseService(user_repository=user_repository, course_repository=course_repository, enrollment_repository=enrollment_repository, transaction_repository=transaction_repository, purchase_repository=purchase_repository, db=db)
 
 
 
