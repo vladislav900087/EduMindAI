@@ -476,6 +476,57 @@ def test_user_receives_only_their_records(db_session, client):
     assert get_teacher_history_response.json()[0]['transaction_type'] == WalletTransactionType.COURSE_SALE
 
 
+def test_teacher_can_view_their_earnings_even_if_they_do_not_have_them(db_session, client):
+
+    teacher_token = create_test_user_and_login(db_session, client, role=UserRole.TEACHER)
+
+    response = client.get('/wallet/me/earnings', headers={'Authorization': f'Bearer {teacher_token}'})
+
+    assert response.status_code == 200
+
+    assert response.json()['KZT'] == 0
+    assert response.json()['EUR'] == 0
+    assert response.json()['transactions'] == []
+
+def test_teacher_can_view_their_earnings(db_session, client):
+
+    teacher_token = create_test_user_and_login(db_session, client, role=UserRole.TEACHER)
+    student_token = create_test_user_and_login(db_session, client, role=UserRole.STUDENT)
+
+    create_course_response = client.post('/courses', headers={'Authorization': f'Bearer {teacher_token}'}, json={'title': 'Course title', 'description': 'Course description', 'price_amount': 10000, 'currency': Currency.KZT})
+
+    assert create_course_response.status_code == 201
+
+    course_id = create_course_response.json()['id']
+
+    publish_course_response = client.post(f'/courses/{course_id}/publish', headers={"Authorization": f'Bearer {teacher_token}'})
+
+    assert publish_course_response.status_code == 200
+
+    top_up_response = client.post('/wallet/mock-top-ups', headers={'Authorization': f'Bearer {student_token}'}, json={'amount': 10000, 'currency': Currency.KZT})
+
+    assert top_up_response.status_code == 201
+
+    get_balance_response = client.get('/wallet/me', headers={'Authorization': f'Bearer {student_token}'})
+
+    assert get_balance_response.status_code == 200
+
+    assert get_balance_response.json()['KZT'] == 10000
+
+    course_purchase_response = client.post(f'/courses/{course_id}/purchase', headers={"Authorization": f'Bearer {student_token}'})
+
+    assert course_purchase_response.status_code == 201
+
+    get_earnings_response = client.get('/wallet/me/earnings', headers={'Authorization': f'Bearer {teacher_token}'})
+
+    assert get_earnings_response.status_code == 200
+
+    assert get_earnings_response.json()['KZT'] == 10000
+    assert get_earnings_response.json()['transactions'][0]['transaction_type'] == WalletTransactionType.COURSE_SALE
+
+
+
+
 
 
 

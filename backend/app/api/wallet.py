@@ -2,13 +2,14 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from backend.app.api.security import get_current_user
 
-from backend.app.models.user import User
+from backend.app.models.user import User, UserRole
 
 
 from backend.app.services.wallet_transaction_service import WalletTransactionService
 from backend.app.api.dependencies import get_transaction_service, get_transaction_repository
-from backend.app.schemas.wallet_transaction import WalletBalanceRead, WalletTransactionTopUp, WalletTransactionRead
+from backend.app.schemas.wallet_transaction import WalletBalanceRead, WalletTransactionTopUp, WalletTransactionRead, TeacherWalletEarningsRead
 from backend.app.repositories.wallet_transaction_repository import WalletTransactionRepository
+
 
 
 router = APIRouter(prefix='/wallet', tags=['Wallet'])
@@ -32,6 +33,15 @@ def get_my_wallet_account(current_user: User = Depends(get_current_user), servic
 def list_user_wallet_transactions(current_user: User = Depends(get_current_user), repository: WalletTransactionRepository = Depends(get_transaction_repository)):
 
     return repository.list_transactions_by_user(user_id=current_user.id)
+
+@router.get('/me/earnings', response_model=TeacherWalletEarningsRead)
+def get_my_earnings(current_user: User = Depends(get_current_user), service: WalletTransactionService = Depends(get_transaction_service)):
+
+    if current_user.role != UserRole.TEACHER:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Only teachers can view their earnings')
+
+    return service.get_teacher_earnings(teacher_id=current_user.id)
+
 
 
 

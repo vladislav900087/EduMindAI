@@ -34,6 +34,25 @@ class WalletTransactionService:
 
         return wallet_transaction
 
+    def get_teacher_earnings(self, teacher_id: int):
+
+        balances = {
+            Currency.KZT: 0,
+            Currency.EUR: 0,
+            'transactions': []
+        }
+
+        transactions = self.repository.list_completed_transactions_by_teacher(teacher_id)
+
+        for transaction in transactions:
+            balances[transaction.currency] += transaction.amount
+
+        balances['transactions'] = transactions
+
+        return balances
+
+
+
 
 
 

@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from backend.app.models.wallet_transaction import WalletTransaction, WalletTransactionStatus
+from backend.app.models.wallet_transaction import WalletTransaction, WalletTransactionStatus, WalletTransactionType
 
 
 class WalletTransactionRepository:
@@ -30,6 +30,12 @@ class WalletTransactionRepository:
     def list_transactions_by_user(self, user_id: int) -> list[WalletTransaction]:
 
         statement = select(WalletTransaction).where(WalletTransaction.user_id == user_id).order_by(WalletTransaction.created_at.desc())
+
+        return list(self.db.scalars(statement))
+
+    def list_completed_transactions_by_teacher(self, teacher_id: int) -> list[WalletTransaction]:
+
+        statement = select(WalletTransaction).where(WalletTransaction.user_id == teacher_id, WalletTransaction.status == WalletTransactionStatus.COMPLETED, WalletTransaction.transaction_type == WalletTransactionType.COURSE_SALE).order_by(WalletTransaction.created_at.desc())
 
         return list(self.db.scalars(statement))
 

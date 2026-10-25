@@ -11,6 +11,8 @@ class WalletBalanceRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+
+
 class WalletTransactionTopUp(BaseModel):
     amount: int
     currency: Currency
@@ -38,6 +40,11 @@ class WalletTransactionRead(BaseModel):
     status: str
     created_at: datetime
 
+
+class TeacherWalletEarningsRead(BaseModel):
+    KZT: int
+    EUR: int
+    transactions: list[WalletTransactionRead]
 
 
 
