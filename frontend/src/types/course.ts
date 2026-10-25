@@ -1,3 +1,5 @@
+import type { Currency} from './payment';
+
 export type CourseStatus = 'draft' | 'published' | 'archived';
 
 
@@ -8,6 +10,8 @@ export type Course = {
     description: string | null;
     teacher_id: number;
     status: CourseStatus;
+    price_amount: number;
+    currency: Currency;
     created_at: string;
 
     };
@@ -16,6 +20,8 @@ export type CourseCreateRequest = {
 
     title: string;
     description?: string | null;
+    price_amount?: number | null;
+    currency?: Currency | null;
 
 
     };

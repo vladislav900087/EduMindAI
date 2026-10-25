@@ -1,6 +1,8 @@
 import { apiClient } from './client';
 import type { Course, CourseCreateRequest, CourseProgress } from '../types/course';
 
+import type { CoursePurchase } from '../types/payment';
+
 export async function getCourses(): Promise<Course[]> {
 
     const response = await apiClient.get<Course[]>('/courses');
@@ -47,4 +49,11 @@ export async function getCourseProgress(courseId: number): Promise<CourseProgres
 
     return response.data;
 
+    }
+
+export async function purchaseCourse(courseId: number): Promise<CoursePurchase> {
+
+    const response = await apiClient.post<CoursePurchase>(`/courses/${courseId}/purchase`);
+
+    return response.data;
     }

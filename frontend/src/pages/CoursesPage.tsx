@@ -58,6 +58,8 @@ function CoursesPage() {
 
         title: string;
         description: string;
+        price_amount: number;
+        currency: 'KZT' | 'EUR';
 
         }) {
 
@@ -65,6 +67,9 @@ function CoursesPage() {
 
                 title: values.title,
                 description: values.description || null,
+                price_amount: values.price_amount,
+                currency: values.currency,
+
 
                 });
 
@@ -128,7 +133,11 @@ function CoursesPage() {
 
             {!isLoading && !errorMessage && canManageCourses && (
                 <div className='mt-8 grid gap-6 lg:grid-cols-[360px_1fr]'>
-                    <CourseForm onSubmit={handleCreateCourse} />
+                    <CourseForm
+                        defaultCurrency={user?.region === 'europe' ? 'EUR' : 'KZT'}
+                        onSubmit={handleCreateCourse}
+
+                        />
 
                     <section>
                         <h2 className='text-lg font-semibold text-slate-900'>
