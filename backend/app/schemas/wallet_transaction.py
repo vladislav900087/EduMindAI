@@ -39,3 +39,5 @@ class WalletTransactionRead(BaseModel):
     created_at: datetime
 
 
+
+

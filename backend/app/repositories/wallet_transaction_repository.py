@@ -27,3 +27,11 @@ class WalletTransactionRepository:
 
         return list(self.db.scalars(statement))
 
+    def list_transactions_by_user(self, user_id: int) -> list[WalletTransaction]:
+
+        statement = select(WalletTransaction).where(WalletTransaction.user_id == user_id).order_by(WalletTransaction.created_at.desc())
+
+        return list(self.db.scalars(statement))
+
+
+

@@ -422,6 +422,65 @@ def test_duplicate_purchase_attempt_receives_400(client, db_session):
     assert teacher_get_balances_response.status_code == 200
     assert teacher_get_balances_response.json()['KZT'] == 10000
 
+def test_new_user_receives_empty_transaction_list(db_session, client):
+
+    user_token = create_test_user_and_login(db_session, client, role=UserRole.STUDENT)
+
+    response = client.get('/wallet/me/transactions', headers={'Authorization': f'Bearer {user_token}'})
+
+    assert response.status_code == 200
+    assert len(response.json()) == 0
+
+def test_user_receives_only_their_records(db_session, client):
+
+    user_one_token = create_test_user_and_login(db_session, client, role=UserRole.STUDENT)
+    user_two_token = create_test_user_and_login(db_session, client, role=UserRole.TEACHER)
+
+    create_course_response = client.post('/courses', headers={"Authorization": f'Bearer {user_two_token}'}, json={'title': 'Course title', 'description': 'Course description', 'price_amount': 10000, 'currency': Currency.KZT})
+
+    assert create_course_response.status_code == 201
+
+    course_id = create_course_response.json()['id']
+
+    publish_course_response = client.post(f'/courses/{course_id}/publish', headers={'Authorization': f'Bearer {user_two_token}'})
+
+    assert publish_course_response.status_code == 200
+
+    top_up_response = client.post('/wallet/mock-top-ups', headers={'Authorization': f'Bearer {user_one_token}'}, json={'amount': 10000, 'currency': Currency.KZT})
+
+    assert top_up_response.status_code == 201
+
+    get_balances_response = client.get('/wallet/me', headers={"Authorization": f'Bearer {user_one_token}'})
+
+    assert get_balances_response.status_code == 200
+
+    assert get_balances_response.json()['KZT'] == 10000
+
+    purchase_course_response = client.post(f'/courses/{course_id}/purchase', headers={'Authorization': f'Bearer {user_one_token}'})
+
+    assert purchase_course_response.status_code == 201
+
+    get_student_transaction_history_response = client.get('/wallet/me/transactions', headers={'Authorization': f'Bearer {user_one_token}'})
+
+    assert get_student_transaction_history_response.status_code == 200
+
+    assert len(get_student_transaction_history_response.json()) == 2
+    assert get_student_transaction_history_response.json()[0]['transaction_type'] == WalletTransactionType.COURSE_PURCHASE
+
+    get_teacher_history_response = client.get('/wallet/me/transactions', headers={"Authorization": f'Bearer {user_two_token}'})
+
+    assert get_teacher_history_response.status_code == 200
+
+    assert len(get_teacher_history_response.json()) == 1
+
+    assert get_teacher_history_response.json()[0]['transaction_type'] == WalletTransactionType.COURSE_SALE
+
+
+
+
+
+
+
 
 
 

@@ -6,8 +6,9 @@ from backend.app.models.user import User
 
 
 from backend.app.services.wallet_transaction_service import WalletTransactionService
-from backend.app.api.dependencies import get_transaction_service
+from backend.app.api.dependencies import get_transaction_service, get_transaction_repository
 from backend.app.schemas.wallet_transaction import WalletBalanceRead, WalletTransactionTopUp, WalletTransactionRead
+from backend.app.repositories.wallet_transaction_repository import WalletTransactionRepository
 
 
 router = APIRouter(prefix='/wallet', tags=['Wallet'])
@@ -26,4 +27,11 @@ def create_wallet_mock_top_up(data: WalletTransactionTopUp, current_user: User =
 @router.get('/me', response_model=WalletBalanceRead)
 def get_my_wallet_account(current_user: User = Depends(get_current_user), service: WalletTransactionService = Depends(get_transaction_service)):
     return service.get_balances(user_id=current_user.id)
+
+@router.get('/me/transactions', response_model=list[WalletTransactionRead])
+def list_user_wallet_transactions(current_user: User = Depends(get_current_user), repository: WalletTransactionRepository = Depends(get_transaction_repository)):
+
+    return repository.list_transactions_by_user(user_id=current_user.id)
+
+
 
