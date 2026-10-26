@@ -13,8 +13,11 @@ import RegisterPage from './pages/RegisterPage'
 import QuizHistoryPage from './pages/QuizHistoryPage';
 import LessonDetailPage from './pages/LessonDetailPage';
 import SettingsPage from './pages/SettingsPage';
+import WalletPage from './pages/WalletPage';
+import EarningsPage from './pages/EarningsPage';
 
 import ProtectedRoute from './auth/ProtectedRoute';
+
 
 
 function App() {
@@ -37,6 +40,8 @@ function App() {
                     <Route path='/quiz-history' element={<QuizHistoryPage />} />
                     <Route path='/lessons/:lessonId' element={<LessonDetailPage />} />
                     <Route path='/settings' element={<SettingsPage />} />
+                    <Route path='/wallet' element={<WalletPage />} />
+                    <Route path='/earnings' element={<EarningsPage />} />
                 </Route>
             </Route>
         </Routes>

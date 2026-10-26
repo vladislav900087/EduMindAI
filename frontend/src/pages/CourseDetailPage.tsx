@@ -13,7 +13,7 @@ import type { Quiz } from '../types/quiz';
 
 import Button from '../components/ui/Button';
 import { useAuth } from '../auth/AuthContext';
-import { getCourseProgress } from '../api/coursesApi';
+import { getCourseProgress, purchaseCourse } from '../api/coursesApi';
 import { enrollInCourse, getMyEnrollments} from '../api/enrollmentsApi';
 import { completeLesson, getMyProgress } from '../api/lessonsApi';
 import type { CourseProgress } from '../types/course';
@@ -25,6 +25,8 @@ import FormCard from '../components/ui/FormCard';
 import { createLesson } from '../api/lessonsApi';
 import { createQuiz } from '../api/quizzesApi';
 import { createAssignment } from '../api/assignmentsApi';
+
+import { formatCoursePrice } from '../utils/money';
 
 
 
@@ -42,6 +44,7 @@ function CourseDetailPage() {
     const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
     const [lessonProgress, setLessonProgress] = useState<LessonProgress[]>([]);
     const [courseProgress, setCourseProgress] = useState<CourseProgress | null>(null);
+    const [isPurchasing, setIsPurchasing] = useState(false);
     const [actionError, setActionError] = useState('');
     const [lessons, setLessons] = useState<Lesson[]>([]);
     const [quizzes, setQuizzes] = useState<Quiz[]>([]);
@@ -305,6 +308,48 @@ function CourseDetailPage() {
 
         }
 
+    async function handlePurchase() {
+
+        if (!course) {
+            return;
+            }
+
+        setActionError('');
+        setIsPurchasing(true);
+
+        try {
+                await purchaseCourse(course.id);
+
+                const [
+                    enrollmentData,
+                    lessonData,
+                    quizData,
+                    assignmentData,
+                    lessonProgressData,
+                    progressData,
+                    ] = await Promise.all([
+                            getMyEnrollments(),
+                            getCourseLessons(course.id),
+                            getCourseQuizzes(course.id),
+                            getCourseAssignments(course.id),
+                            getMyProgress(),
+                            getCourseProgress(course.id),
+                        ]);
+
+                    setEnrollments(enrollmentData);
+                    setLessons(lessonData);
+                    setQuizzes(quizData);
+                    setAssignments(assignmentData);
+                    setLessonProgress(lessonProgressData);
+                    setCourseProgress(progressData);
+            } catch {
+                setActionError("Could not purchase this course.");
+                } finally {
+                        setIsPurchasing(false);
+                    }
+
+        }
+
     async function handleCompleteLesson(lessonId: number) {
 
         if (!course) {
@@ -371,6 +416,10 @@ if (errorMessage || !course) {
                         {course.description || t('common.noDescription')}
                     </p>
 
+                    <p className='mt-4 text-lg font-semibold text-slate-900'>
+                        {formatCoursePrice(course.price_amount, course.currency)}
+                    </p>
+
                     {isStudent && (
                             <div className='mt-5 border-t border-slate-100 pt-5'>
                                 {isEnrolled ? (
@@ -391,9 +440,25 @@ if (errorMessage || !course) {
                                         </div>
 
                                     ) : (
-                                            <Button type='button' onClick={handleEnroll}>
-                                                {t('learning.enroll')}
-                                            </Button>
+                                        course.price_amount === 0 ? (
+  <Button type='button' onClick={handleEnroll}>
+    Enroll for free
+  </Button>
+) : (
+  <Button
+    type='button'
+    onClick={handlePurchase}
+    disabled={isPurchasing}
+  >
+    {isPurchasing
+      ? 'Purchasing...'
+      : `Buy for ${formatCoursePrice(
+          course.price_amount,
+          course.currency,
+        )}`}
+  </Button>
+)
+
 
                                         )}
 

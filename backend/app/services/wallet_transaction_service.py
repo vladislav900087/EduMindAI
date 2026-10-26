@@ -27,6 +27,8 @@ class WalletTransactionService:
 
         if settings.payment_provider != 'mock':
             raise ValueError('Mock top-ups are unavailable.')
+        if settings.environment != 'development':
+            raise ValueError('Mock top-ups are unavailable.')
 
         wallet_transaction = WalletTransaction(user_id=user_id, amount=amount, currency=currency, direction=WalletTransactionDirection.CREDIT, transaction_type=WalletTransactionType.TOP_UP)
 

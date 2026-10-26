@@ -8,6 +8,8 @@ import { useAuth } from '../auth/AuthContext';
 import type { Course } from '../types/course';
 import { useTranslation } from 'react-i18next';
 
+import { formatCoursePrice } from '../utils/money';
+
 
 
 function CoursesPage() {
@@ -173,6 +175,9 @@ function CoursesPage() {
                                                     </h3>
                                                     <p className='mt-2 text-sm text-slate-600'>
                                                         {course.description || t('common.noDescription')}
+                                                    </p>
+                                                    <p className='mt-3 text-sm font-semibold text-slate-900'>
+                                                        {formatCoursePrice(course.price_amount, course.currency)}
                                                     </p>
                                                 </div>
                                                 <div className='flex shrink-0 gap-2'>

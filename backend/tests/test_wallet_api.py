@@ -123,6 +123,7 @@ def test_unauthenticated_top_up_request_returns_401(client):
 def test_if_payment_provider_is_not_mock_endpoint_refuses_to_create_money(db_session, client):
 
     settings.payment_provider = 'non-mock provider'
+    settings.environment = 'production'
 
     token = create_test_user_and_login(db_session, client, UserRole.STUDENT)
 
@@ -131,6 +132,7 @@ def test_if_payment_provider_is_not_mock_endpoint_refuses_to_create_money(db_ses
     assert response.status_code == 400
 
     settings.payment_provider = 'mock'
+    settings.environment = 'development'
 
 def test_student_with_enough_balance_receives_201_while_purchasing_course(db_session, client):
 

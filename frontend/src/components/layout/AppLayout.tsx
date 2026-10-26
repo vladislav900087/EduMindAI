@@ -15,6 +15,8 @@ function AppLayout() {
     const navItems = [
     { to: "/dashboard", label: t('nav.dashboard') },
     { to: "/courses", label: t('nav.courses') },
+    { to: '/wallet', label: 'Wallet'},
+    ...(user?.role === 'teacher' ? [{to: '/earnings', label: 'Earnings'}] : []),
     { to: "/assignments", label: t('nav.assignments') },
     { to: '/settings', label: t('nav.settings')},
 
