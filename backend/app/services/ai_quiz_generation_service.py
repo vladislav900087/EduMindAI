@@ -2,6 +2,9 @@ from google import genai
 
 from backend.app.core.config import settings
 from backend.app.schemas.ai_quiz import (AIQuizGenerationRequest, AIQuizGenerationResult)
+import logging
+
+logger = logging.getLogger(__name__)
 
 class AIQuizGenerationService:
     def __init__(self, client=None):
@@ -41,6 +44,7 @@ class AIQuizGenerationService:
             )
 
         except Exception as exc:
+            logger.exception(f'Gemini quiz generation failed: {exc}')
             raise ValueError('AI quiz generation is temporarily unavailable') from exc
 
         if not interaction.output_text:

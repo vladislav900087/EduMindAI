@@ -22,6 +22,7 @@ function WalletPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const isMockPaymentEnabled = import.meta.env.VITE_PAYMENT_PROVIDER === 'mock';
 
   async function loadWallet() {
     setErrorMessage('');
@@ -117,43 +118,47 @@ function WalletPage() {
           </p>
         </section>
       </div>
+{isMockPaymentEnabled && (
+                    <section className='mt-6 rounded-lg border border-slate-200 bg-white p-5 shadow-sm'>
+                <h2 className='text-lg font-semibold text-slate-900'>
+                  Add development funds
+                </h2>
 
-      <section className='mt-6 rounded-lg border border-slate-200 bg-white p-5 shadow-sm'>
-        <h2 className='text-lg font-semibold text-slate-900'>
-          Add development funds
-        </h2>
+                <div className='mt-4 grid gap-4 sm:grid-cols-[1fr_120px_auto]'>
+                  <input
+                    className='rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
+                    type='number'
+                    min={1}
+                    step={1}
+                    value={amount}
+                    onChange={(event) => setAmount(event.target.value)}
+                    placeholder='Amount'
+                  />
 
-        <div className='mt-4 grid gap-4 sm:grid-cols-[1fr_120px_auto]'>
-          <input
-            className='rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
-            type='number'
-            min={1}
-            step={1}
-            value={amount}
-            onChange={(event) => setAmount(event.target.value)}
-            placeholder='Amount'
-          />
+                  <select
+                    className='rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
+                    value={currency}
+                    onChange={(event) =>
+                      setCurrency(event.target.value as Currency)
+                    }
+                  >
+                    <option value='KZT'>KZT</option>
+                    <option value='EUR'>EUR</option>
+                  </select>
 
-          <select
-            className='rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
-            value={currency}
-            onChange={(event) =>
-              setCurrency(event.target.value as Currency)
-            }
-          >
-            <option value='KZT'>KZT</option>
-            <option value='EUR'>EUR</option>
-          </select>
+                  <Button
+                    type='button'
+                    onClick={handleTopUp}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? 'Adding...' : 'Add funds'}
+                  </Button>
+                </div>
+              </section>
+              )}
 
-          <Button
-            type='button'
-            onClick={handleTopUp}
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? 'Adding...' : 'Add funds'}
-          </Button>
-        </div>
-      </section>
+
+
 
       <section className='mt-6 rounded-lg border border-slate-200 bg-white p-5 shadow-sm'>
         <h2 className='text-lg font-semibold text-slate-900'>

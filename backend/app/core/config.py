@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     smtp_tls: bool = True
 
     gemini_api_key: str = ''
-    gemini_model: str = 'gemini-3.8-flash'
+    gemini_model: str = 'gemini-3.1-flash-lite'
 
 
     environment: Literal['development', 'test', 'production'] = 'development'
